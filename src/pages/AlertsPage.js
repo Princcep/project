@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { alertsAPI, bridgesAPI } from '../utils/api';
 import { useAuth } from '../utils/AuthContext';
+import Navbar from '../components/Navbar';
 
 const AlertsPage = () => {
   const [bridges, setBridges] = useState([]);
@@ -82,29 +83,34 @@ const AlertsPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-950 to-slate-900 text-white">
-      {/* Header */}
-      <div className="bg-slate-800 bg-opacity-50 backdrop-blur-sm border-b border-blue-500 border-opacity-30">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <h1 className="text-3xl font-bold">🚨 System Alerts</h1>
-          <p className="text-gray-400 text-sm mt-1">Monitor and manage system alerts</p>
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+      <Navbar />
+      
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pt-24">
+        {/* Header */}
+        <div className="card-glow border-2 border-cyan-500 border-opacity-60 rounded-xl p-8 mb-8 shadow-glow-lg">
+          <h1 className="text-4xl font-bold text-cyan-400 flex items-center space-x-3">
+            <span className="text-5xl">🚨</span>
+            <span>System Alerts & Notifications</span>
+          </h1>
+          <p className="text-slate-400 text-lg mt-3">Monitor and manage critical system alerts in real-time</p>
         </div>
-      </div>
 
-      {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Controls */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">Select Bridge</label>
+          <div className="card-elevated border-2 border-cyan-500 border-opacity-30 p-4">
+            <label className="block text-sm font-bold text-cyan-400 mb-3">
+              <img src="/logo.svg" alt="Bridge" className="inline h-4 w-auto mr-1" />
+              Select Bridge
+            </label>
             <select
               value={selectedBridgeId}
               onChange={(e) => setSelectedBridgeId(e.target.value)}
-              className="w-full px-4 py-2 bg-slate-700 border border-blue-500 border-opacity-30 rounded-lg text-white focus:outline-none focus:border-blue-500"
+              className="input-modern"
             >
               <option value="">-- Select a bridge --</option>
               {bridges.map((bridge) => (
-                <option key={bridge._id} value={bridge._id}>
+                <option key={bridge._id} value={bridge._id} className="bg-slate-800">
                   {bridge.name} - {bridge.location}
                 </option>
               ))}
@@ -112,14 +118,14 @@ const AlertsPage = () => {
           </div>
 
           <div className="flex items-end">
-            <label className="flex items-center space-x-2 cursor-pointer">
+            <label className="flex items-center space-x-3 cursor-pointer bg-slate-800 bg-opacity-40 border-2 border-cyan-500 border-opacity-30 px-4 py-3 rounded-lg hover:border-opacity-100 transition-all duration-300">
               <input
                 type="checkbox"
                 checked={showResolved}
                 onChange={(e) => setShowResolved(e.target.checked)}
-                className="w-4 h-4 rounded bg-slate-700 border-blue-500"
+                className="w-5 h-5 rounded accent-cyan-500"
               />
-              <span className="text-sm font-medium text-gray-300">Show Resolved Alerts</span>
+              <span className="text-base font-semibold text-slate-300">Show Resolved Alerts</span>
             </label>
           </div>
 
@@ -127,35 +133,35 @@ const AlertsPage = () => {
             <button
               onClick={fetchAlerts}
               disabled={loading}
-              className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed"
+              className="btn-primary px-6 disabled:opacity-50 disabled:cursor-not-allowed shadow-glow"
             >
-              🔄 Refresh
+              🔄 Refresh Data
             </button>
           </div>
         </div>
 
         {/* Summary Stats */}
         {selectedBridgeId && alerts.length > 0 && (
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-            <div className="bg-slate-800 bg-opacity-50 backdrop-blur-sm border border-blue-500 border-opacity-30 rounded-lg p-4">
-              <p className="text-gray-400 text-sm mb-1">Total Alerts</p>
-              <p className="text-2xl font-bold text-white">{alerts.length}</p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+            <div className="card-elevated border-2 border-cyan-500 border-opacity-40 p-6">
+              <p className="text-slate-400 text-sm mb-2 font-semibold">📊 Total Alerts</p>
+              <p className="text-4xl font-bold text-cyan-400">{alerts.length}</p>
             </div>
-            <div className="bg-slate-800 bg-opacity-50 backdrop-blur-sm border border-red-500 border-opacity-30 rounded-lg p-4">
-              <p className="text-gray-400 text-sm mb-1">Critical</p>
-              <p className="text-2xl font-bold text-red-400">
+            <div className="card-elevated border-2 border-red-500 border-opacity-40 p-6">
+              <p className="text-slate-400 text-sm mb-2 font-semibold">🔴 Critical</p>
+              <p className="text-4xl font-bold text-red-400">
                 {alerts.filter((a) => a.severity === 'critical').length}
               </p>
             </div>
-            <div className="bg-slate-800 bg-opacity-50 backdrop-blur-sm border border-orange-500 border-opacity-30 rounded-lg p-4">
-              <p className="text-gray-400 text-sm mb-1">High</p>
-              <p className="text-2xl font-bold text-orange-400">
+            <div className="card-elevated border-2 border-orange-500 border-opacity-40 p-6">
+              <p className="text-slate-400 text-sm mb-2 font-semibold">🟠 High</p>
+              <p className="text-4xl font-bold text-orange-400">
                 {alerts.filter((a) => a.severity === 'high').length}
               </p>
             </div>
-            <div className="bg-slate-800 bg-opacity-50 backdrop-blur-sm border border-yellow-500 border-opacity-30 rounded-lg p-4">
-              <p className="text-gray-400 text-sm mb-1">Unresolved</p>
-              <p className="text-2xl font-bold text-yellow-400">
+            <div className="card-elevated border-2 border-yellow-500 border-opacity-40 p-6">
+              <p className="text-slate-400 text-sm mb-2 font-semibold">🟡 Unresolved</p>
+              <p className="text-4xl font-bold text-yellow-400">
                 {alerts.filter((a) => !a.resolved).length}
               </p>
             </div>
@@ -164,8 +170,11 @@ const AlertsPage = () => {
 
         {/* Error Message */}
         {error && (
-          <div className="bg-red-500 bg-opacity-20 border border-red-500 text-red-300 px-4 py-3 rounded-lg mb-6">
-            {error}
+          <div className="bg-red-500 bg-opacity-30 border-2 border-red-500 text-red-200 px-6 py-4 rounded-lg mb-6 animate-slide-down backdrop-blur-sm">
+            <div className="flex items-center gap-3">
+              <span className="text-2xl">⚠️</span>
+              <span className="font-semibold">{error}</span>
+            </div>
           </div>
         )}
 
@@ -173,8 +182,8 @@ const AlertsPage = () => {
         {loading && (
           <div className="flex items-center justify-center h-64">
             <div className="text-center">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
-              <p className="text-gray-400">Loading alerts...</p>
+              <div className="animate-spin rounded-full h-16 w-16 border-4 border-cyan-500 border-t-transparent mx-auto mb-4 shadow-glow"></div>
+              <p className="text-slate-400 text-lg font-semibold">Loading alerts...</p>
             </div>
           </div>
         )}
@@ -186,39 +195,39 @@ const AlertsPage = () => {
               alerts.map((alert) => (
                 <div
                   key={alert._id}
-                  className={`border rounded-lg p-6 backdrop-blur-sm ${getSeverityColor(alert.severity)}`}
+                  className={`card-glow border-2 ${getSeverityColor(alert.severity)} p-6 backdrop-blur-md hover-lift transition-all duration-300`}
                 >
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
-                      <div className="flex items-center space-x-3 mb-2">
-                        <span className="text-lg font-semibold">{getSeverityBadge(alert.severity)}</span>
-                        <span className="text-sm px-2 py-1 bg-black bg-opacity-30 rounded">
+                      <div className="flex items-center space-x-3 mb-3 flex-wrap gap-2">
+                        <span className="text-2xl font-bold">{getSeverityBadge(alert.severity)}</span>
+                        <span className="text-xs px-3 py-1 bg-slate-700 bg-opacity-50 rounded-full font-semibold text-cyan-300 border border-cyan-500 border-opacity-30">
                           {alert.type}
                         </span>
                         {alert.resolved && (
-                          <span className="text-sm px-2 py-1 bg-green-500 bg-opacity-20 rounded text-green-400">
+                          <span className="text-xs px-3 py-1 bg-green-500 bg-opacity-30 rounded-full text-green-400 border border-green-500 border-opacity-40 font-bold">
                             ✓ Resolved
                           </span>
                         )}
                       </div>
-                      <p className="text-white font-medium mb-2">{alert.message}</p>
-                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4 text-sm">
-                        <div>
-                          <p className="text-gray-400">Value</p>
-                          <p className="text-white font-semibold">{alert.value?.toFixed(2) || 'N/A'}</p>
+                      <p className="text-slate-100 font-bold text-lg mb-3">{alert.message}</p>
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4">
+                        <div className="bg-slate-800 bg-opacity-40 p-3 rounded-lg border border-slate-600 border-opacity-40">
+                          <p className="text-slate-400 text-xs mb-1 font-semibold">Value</p>
+                          <p className="text-white font-bold text-lg">{alert.value?.toFixed(2) || 'N/A'}</p>
                         </div>
-                        <div>
-                          <p className="text-gray-400">Risk Score</p>
-                          <p className="text-white font-semibold">{alert.riskScore?.toFixed(2) || 'N/A'}</p>
+                        <div className="bg-slate-800 bg-opacity-40 p-3 rounded-lg border border-slate-600 border-opacity-40">
+                          <p className="text-slate-400 text-xs mb-1 font-semibold">Risk Score</p>
+                          <p className="text-white font-bold text-lg">{alert.riskScore?.toFixed(2) || 'N/A'}</p>
                         </div>
-                        <div>
-                          <p className="text-gray-400">Created</p>
-                          <p className="text-white font-semibold text-xs">{formatDate(alert.createdAt)}</p>
+                        <div className="bg-slate-800 bg-opacity-40 p-3 rounded-lg border border-slate-600 border-opacity-40">
+                          <p className="text-slate-400 text-xs mb-1 font-semibold">Created</p>
+                          <p className="text-white font-mono text-xs">{formatDate(alert.createdAt)}</p>
                         </div>
                         {alert.resolved && alert.resolvedAt && (
-                          <div>
-                            <p className="text-gray-400">Resolved</p>
-                            <p className="text-white font-semibold text-xs">{formatDate(alert.resolvedAt)}</p>
+                          <div className="bg-slate-800 bg-opacity-40 p-3 rounded-lg border border-slate-600 border-opacity-40">
+                            <p className="text-slate-400 text-xs mb-1 font-semibold">Resolved</p>
+                            <p className="text-white font-mono text-xs">{formatDate(alert.resolvedAt)}</p>
                           </div>
                         )}
                       </div>
@@ -227,20 +236,24 @@ const AlertsPage = () => {
                 </div>
               ))
             ) : (
-              <div className="text-center py-12 bg-slate-800 bg-opacity-50 backdrop-blur-sm border border-blue-500 border-opacity-30 rounded-lg">
-                <p className="text-gray-400 text-lg">No alerts found</p>
-                <p className="text-gray-500 text-sm mt-2">All systems operating normally</p>
+              <div className="card-glow border-2 border-green-500 border-opacity-40 text-center py-12 backdrop-blur-md">
+                <p className="text-slate-300 text-xl font-semibold">✓ No Alerts Found</p>
+                <p className="text-slate-400 text-base mt-2">All bridge systems operating normally</p>
               </div>
             )}
           </div>
         )}
 
         {!selectedBridgeId && (
-          <div className="text-center py-12 bg-slate-800 bg-opacity-50 backdrop-blur-sm border border-blue-500 border-opacity-30 rounded-lg">
-            <p className="text-gray-400 text-lg">Please select a bridge to view alerts</p>
+          <div className="card-glow border-2 border-cyan-500 border-opacity-40 text-center py-12 backdrop-blur-md">
+            <p className="text-slate-300 text-xl font-semibold">
+              <img src="/logo.svg" alt="Bridge" className="inline h-4 w-auto mr-1" />
+              Select a Bridge
+            </p>
+            <p className="text-slate-400 text-base mt-2">Choose a bridge from the dropdown to view alerts</p>
           </div>
         )}
-      </div>
+      </main>
     </div>
   );
 };

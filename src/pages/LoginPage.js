@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../utils/AuthContext';
+import { EnvelopeIcon, KeyIcon, BoltIcon, CogIcon, UserIcon, IdentificationIcon, ExclamationCircleIcon, CheckCircleIcon } from '@heroicons/react/24/outline';
 
 const LoginPage = () => {
   const [formData, setFormData] = useState({
@@ -65,59 +66,67 @@ const LoginPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 flex items-center justify-center px-4 py-8">
-      <div className="w-full max-w-md">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center px-4 py-8 relative overflow-hidden">
+      {/* Animated Background */}
+      <div className="fixed inset-0 opacity-20 pointer-events-none">
+        <div className="absolute top-20 left-10 w-72 h-72 bg-cyan-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-float"></div>
+        <div className="absolute top-40 right-10 w-72 h-72 bg-blue-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-float" style={{animationDelay: '2s'}}></div>
+      </div>
+
+      <div className="w-full max-w-md relative z-10">
         {/* Logo */}
-        <div className="text-center mb-8">
-          <div className="text-4xl mb-2">🌉</div>
-          <h1 className="text-3xl font-bold text-white">Smart Bridge</h1>
-          <p className="text-blue-300">Digital Twin Platform</p>
+        <div className="text-center mb-8 animate-fade-in">
+          <img src="/logo.svg" alt="Smart Bridge" className="mb-3 inline-block transform hover:scale-110 transition-transform duration-300 h-12 w-auto" />
+          <h1 className="text-4xl font-bold text-white mb-2">Smart Bridge</h1>
+          <p className="text-slate-400 text-lg">Digital Twin Platform</p>
         </div>
 
-        {/* Login Card */}
-        <div className="bg-slate-800 bg-opacity-50 backdrop-blur-sm border border-blue-500 border-opacity-30 rounded-lg p-8 shadow-2xl">
-          <h2 className="text-2xl font-bold text-white mb-6 text-center">Login</h2>
+        {/* Main Card */}
+        <div className="card-glow border-2 border-cyan-500 border-opacity-60 shadow-glow-lg p-8 backdrop-blur-md">
+          <h2 className="text-3xl font-bold text-transparent bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text mb-8 text-center">
+            Welcome Back
+          </h2>
 
           {error && (
-            <div className="bg-red-500 bg-opacity-20 border border-red-500 text-red-300 px-4 py-3 rounded-lg mb-6">
-              <div className="flex items-center gap-2">
-                <span className="text-lg">⚠️</span>
-                <span>{error}</span>
+            <div className="bg-red-500 bg-opacity-30 border-2 border-red-500 text-red-200 px-4 py-3 rounded-lg mb-6 animate-slide-down backdrop-blur-sm">
+              <div className="flex items-center gap-3">
+                <ExclamationCircleIcon className="h-6 w-6 text-red-200" />
+                <span className="font-semibold">{error}</span>
               </div>
             </div>
           )}
 
           {success && (
-            <div className="bg-green-500 bg-opacity-20 border border-green-500 text-green-300 px-4 py-3 rounded-lg mb-6">
-              <div className="flex items-center gap-2">
-                <span className="text-lg">✓</span>
-                <span>{success}</span>
+            <div className="bg-green-500 bg-opacity-30 border-2 border-green-500 text-green-200 px-4 py-3 rounded-lg mb-6 animate-slide-down backdrop-blur-sm">
+              <div className="flex items-center gap-3">
+                <CheckCircleIcon className="h-6 w-6 text-green-200" />
+                <span className="font-semibold">{success}</span>
               </div>
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">Email</label>
+          <form onSubmit={handleSubmit} className="space-y-5">
+            <div className="animate-fade-in">
+              <label className="block text-sm font-bold text-cyan-400 mb-3">Email Address</label>
               <input
                 type="email"
                 name="email"
                 value={formData.email}
                 onChange={handleChange}
-                className="w-full px-4 py-2 bg-slate-700 border border-blue-500 border-opacity-30 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition"
+                className="input-modern"
                 placeholder="your@email.com"
                 required
               />
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">Password</label>
+            <div className="animate-fade-in">
+              <label className="block text-sm font-bold text-cyan-400 mb-3">Password</label>
               <input
                 type="password"
                 name="password"
                 value={formData.password}
                 onChange={handleChange}
-                className="w-full px-4 py-2 bg-slate-700 border border-blue-500 border-opacity-30 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition"
+                className="input-modern"
                 placeholder="••••••••"
                 required
               />
@@ -126,72 +135,82 @@ const LoginPage = () => {
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-2 bg-blue-500 hover:bg-blue-600 text-white font-bold rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed mt-6"
+              className="btn-primary w-full shadow-glow hover:shadow-glow-lg disabled:opacity-50 disabled:cursor-not-allowed mt-8 font-bold text-lg py-3 transform hover:scale-105 active:scale-95 transition-all duration-300"
             >
-              {loading ? 'Logging in...' : 'Login'}
+              {loading ? 'Logging in...' : 'Login Now'}
             </button>
           </form>
 
-          {/* Quick Login Buttons */}
-          <div className="mt-8 pt-6 border-t border-blue-500 border-opacity-30">
-            <p className="text-sm text-gray-300 text-center mb-4 font-semibold">🚀 Quick Login (Test Accounts)</p>
-            
-            <div className="space-y-3">
-              <button
-                onClick={() => quickLogin('admin@example.com')}
-                disabled={loading}
-                className="w-full py-3 bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white font-bold rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-between px-4"
-              >
-                <span>👤 Admin Account</span>
-                <span className="text-xs opacity-75">admin@example.com</span>
-              </button>
-
-              <button
-                onClick={() => quickLogin('engineer@example.com')}
-                disabled={loading}
-                className="w-full py-3 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white font-bold rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-between px-4"
-              >
-                <span>⚙️ Engineer Account</span>
-                <span className="text-xs opacity-75">engineer@example.com</span>
-              </button>
-
-              <button
-                onClick={() => quickLogin('demo@example.com')}
-                disabled={loading}
-                className="w-full py-3 bg-slate-700 hover:bg-slate-600 text-blue-300 font-medium rounded-lg transition border border-blue-500 border-opacity-30 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-between px-4"
-              >
-                <span>🎯 Demo Account</span>
-                <span className="text-xs opacity-75">demo@example.com</span>
-              </button>
+          {/* Divider */}
+          <div className="relative mt-8 mb-6">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-cyan-500 border-opacity-30"></div>
             </div>
-
-            {/* Test Credentials Info */}
-            <div className="mt-4 p-3 bg-blue-500 bg-opacity-10 border border-blue-500 border-opacity-20 rounded-lg">
-              <p className="text-xs text-gray-300 leading-relaxed">
-                <span className="font-semibold text-blue-300">💡 Test Credentials:</span>
-                <br />
-                All passwords: <code className="bg-slate-900 px-1.5 py-0.5 rounded text-blue-400 text-xs">password123456</code>
-                <br />
-                Click quick login buttons above ⬆️
-              </p>
+            <div className="relative flex justify-center text-sm">
+              <span className="px-3 bg-gradient-to-br from-slate-800 to-slate-900 text-slate-400 font-semibold">or quick login</span>
             </div>
           </div>
 
+          {/* Quick Login Buttons */}
+          <div className="space-y-3 mb-8">
+            <button
+              onClick={() => quickLogin('admin@example.com')}
+              disabled={loading}
+              className="w-full py-3 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-bold rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-between px-4 transform hover:scale-105 active:scale-95 shadow-lg hover:shadow-glow"
+            >
+              <span className="flex items-center gap-2"><BoltIcon className="h-5 w-5" />Admin</span>
+              <span className="text-xs opacity-75 font-normal">admin@example.com</span>
+            </button>
+
+            <button
+              onClick={() => quickLogin('engineer@example.com')}
+              disabled={loading}
+              className="w-full py-3 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white font-bold rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-between px-4 transform hover:scale-105 active:scale-95 shadow-lg hover:shadow-glow"
+            >
+              <span className="flex items-center gap-2"><CogIcon className="h-5 w-5" />Engineer</span>
+              <span className="text-xs opacity-75 font-normal">engineer@example.com</span>
+            </button>
+
+            <button
+              onClick={() => quickLogin('demo@example.com')}
+              disabled={loading}
+              className="w-full py-3 bg-gradient-to-r from-slate-700 to-slate-600 hover:from-slate-600 hover:to-slate-500 text-cyan-400 font-bold rounded-lg transition border-2 border-cyan-500 border-opacity-50 hover:border-opacity-100 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-between px-4 transform hover:scale-105 active:scale-95"
+            >
+              <span className="flex items-center gap-2"><IdentificationIcon className="h-5 w-5" />Demo</span>
+              <span className="text-xs opacity-75 font-normal">demo@example.com</span>
+            </button>
+          </div>
+
+          {/* Test Credentials Info */}
+          <div className="p-4 bg-cyan-500 bg-opacity-15 border-2 border-cyan-500 border-opacity-40 rounded-lg backdrop-blur-sm">
+            <p className="text-xs text-slate-300 leading-relaxed">
+              <span className="font-bold text-cyan-400">💡 Quick Start:</span>
+              <br />
+              <span className="text-slate-400">All passwords:</span>
+              <code className="bg-slate-900 px-2 py-1 rounded text-cyan-300 text-xs ml-1 font-mono">password123456</code>
+              <br />
+              <span className="text-slate-400 text-xs">Click any button above to login ⬆️</span>
+            </p>
+          </div>
+
           {/* Register Link */}
-          <p className="text-center text-gray-400 mt-6">
+          <p className="text-center text-slate-400 mt-6">
             Don't have an account?{' '}
-            <Link to="/register" className="text-blue-400 hover:text-blue-300 font-medium">
-              Register
+            <Link to="/register" className="text-cyan-400 hover:text-cyan-300 font-bold transition-colors duration-300">
+              Register Here
             </Link>
           </p>
 
           {/* Home Link */}
-          <p className="text-center text-gray-400 mt-4">
-            <Link to="/" className="text-gray-500 hover:text-gray-400 text-sm">
-              Back to Home
+          <p className="text-center text-slate-500 mt-4">
+            <Link to="/" className="text-slate-500 hover:text-slate-400 transition-colors duration-300 text-sm font-semibold">
+              ← Back to Home
             </Link>
           </p>
         </div>
+
+        {/* Footer info */}
+        <p className="text-center text-slate-500 text-xs mt-6">🚀 Built for Hackathon 2026</p>
       </div>
     </div>
   );

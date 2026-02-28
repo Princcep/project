@@ -272,10 +272,10 @@ const Dashboard = () => {
   }, [vibration]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
       <Navbar />
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pt-20">
         {/* Live Data Indicator - Hackathon Display */}
         <LiveDataIndicator
           isConnected={isLiveDataConnected}
@@ -288,36 +288,42 @@ const Dashboard = () => {
         />
 
         {/* API ROLE EXPLANATION PANEL */}
-        <div className="bg-gradient-to-r from-indigo-900 to-purple-900 border border-indigo-500 border-opacity-50 rounded-lg p-6 mb-6 shadow-2xl">
+        <div className="card-glow border-2 border-cyan-500 border-opacity-60 rounded-xl p-6 mb-8 shadow-glow-lg mb-8">
+          <h2 className="text-2xl font-bold text-cyan-400 mb-6 flex items-center space-x-3">
+            <span className="text-3xl">🔌</span>
+            <span>Real-time Data API Status</span>
+          </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Weather API */}
-            <div className={`p-4 rounded-lg border transition-all ${
+            <div className={`card-elevated border-2 ${
               dataSource.weather.connected
-                ? 'bg-green-900 bg-opacity-30 border-green-500'
-                : 'bg-red-900 bg-opacity-30 border-red-500'
+                ? 'border-green-500 border-opacity-60'
+                : 'border-red-500 border-opacity-60'
             }`}>
-              <div className="flex items-center gap-2 mb-2">
-                <span className={`text-2xl ${dataSource.weather.connected ? '🌍' : '❌'}`}></span>
-                <p className="text-sm font-bold text-gray-300">WEATHER API</p>
-                <span className={`text-xs px-2 py-1 rounded font-bold ${
-                  dataSource.weather.connected
-                    ? 'bg-green-500 text-white'
-                    : 'bg-red-500 text-white'
-                }`}>
-                  {dataSource.weather.connected ? 'LIVE ✓' : 'OFFLINE'}
-                </span>
+              <div className="flex items-center gap-3 mb-3">
+                <span className={`text-3xl ${dataSource.weather.connected ? '🌍' : '❌'}`}></span>
+                <div>
+                  <p className="text-sm font-bold text-cyan-400">WEATHER API</p>
+                  <span className={`inline-block text-xs px-3 py-1 rounded-full font-bold ${
+                    dataSource.weather.connected
+                      ? 'bg-green-500 bg-opacity-30 text-green-400'
+                      : 'bg-red-500 bg-opacity-30 text-red-400'
+                  }`}>
+                    {dataSource.weather.connected ? '✓ LIVE' : '✗ OFFLINE'}
+                  </span>
+                </div>
               </div>
-              <p className="text-xs text-gray-400 mb-3 leading-relaxed">
-                <strong>Role:</strong> Fetches real temperature & wind speed from OpenWeather API
+              <p className="text-sm text-slate-300 mb-3">
+                <strong className="text-cyan-300">Function:</strong> Fetches real temperature & wind speed from OpenWeather
               </p>
-              <div className="space-y-2 text-xs mb-4">
-                <p className="text-gray-300">
-                  📊 <strong>Temperature</strong> → Thermal monitoring on dashboard
+              <div className="space-y-2 text-sm mb-4">
+                <p className="text-slate-400">
+                  📊 <span className="text-cyan-400">Temperature</span> → Real thermal monitoring
                 </p>
-                <p className="text-gray-300">
-                  💨 <strong>Wind Speed</strong> → Vibration calculation (speed × 4) = Real physical effect
+                <p className="text-slate-400">
+                  💨 <span className="text-cyan-400">Wind Speed</span> → Realistic vibration basis
                 </p>
-                <p className={`font-bold ${
+                <p className={`font-bold text-sm ${
                   dataSource.weather.connected ? 'text-green-400' : 'text-red-400'
                 }`}>
                   {dataSource.weather.connected 
@@ -332,7 +338,7 @@ const Dashboard = () => {
                   href="https://openweathermap.org/api" 
                   target="_blank" 
                   rel="noopener noreferrer"
-                  className="w-full bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold py-2 px-3 rounded transition-colors block text-center mb-2"
+                  className="w-full btn-primary text-xs py-2 px-3 rounded transition-all block text-center mb-2 hover:shadow-glow"
                 >
                   🔧 Get Free API Key
                 </a>
@@ -341,41 +347,43 @@ const Dashboard = () => {
               {/* Instructions Link */}
               <a 
                 href={process.env.PUBLIC_URL + '/WEATHER_API_SETUP.md'} 
-                className="w-full bg-slate-700 hover:bg-slate-600 text-gray-200 text-xs font-bold py-2 px-3 rounded transition-colors block text-center"
+                className="w-full btn-secondary text-xs py-2 px-3 rounded transition-all block text-center"
               >
                 📖 Setup Guide
               </a>
             </div>
 
             {/* Earthquake API */}
-            <div className={`p-4 rounded-lg border transition-all ${
+            <div className={`card-elevated border-2 ${
               dataSource.earthquake.connected
-                ? 'bg-green-900 bg-opacity-30 border-green-500'
-                : 'bg-yellow-900 bg-opacity-30 border-yellow-500'
+                ? 'border-green-500 border-opacity-60'
+                : 'border-yellow-500 border-opacity-60'
             }`}>
-              <div className="flex items-center gap-2 mb-2">
-                <span className={`text-2xl ${dataSource.earthquake.connected ? '📍' : '⚠️'}`}></span>
-                <p className="text-sm font-bold text-gray-300">EARTHQUAKE API</p>
-                <span className={`text-xs px-2 py-1 rounded font-bold ${
-                  dataSource.earthquake.connected
-                    ? 'bg-green-500 text-white'
-                    : 'bg-yellow-500 text-gray-900'
-                }`}>
-                  {dataSource.earthquake.connected ? 'LIVE ✓' : 'CHECKING'}
-                </span>
+              <div className="flex items-center gap-3 mb-3">
+                <span className={`text-3xl ${dataSource.earthquake.connected ? '📍' : '⚠️'}`}></span>
+                <div>
+                  <p className="text-sm font-bold text-cyan-400">EARTHQUAKE API</p>
+                  <span className={`inline-block text-xs px-3 py-1 rounded-full font-bold ${
+                    dataSource.earthquake.connected
+                      ? 'bg-green-500 bg-opacity-30 text-green-400'
+                      : 'bg-yellow-500 bg-opacity-30 text-yellow-400'
+                  }`}>
+                    {dataSource.earthquake.connected ? '✓ LIVE' : '⚠ CHECKING'}
+                  </span>
+                </div>
               </div>
-              <p className="text-xs text-gray-400 mb-3 leading-relaxed">
-                <strong>Role:</strong> Detects real earthquakes (magnitude > 4) from USGS in real-time
+              <p className="text-sm text-slate-300 mb-3">
+                <strong className="text-cyan-300">Function:</strong> Detects real earthquakes (magnitude > 4) in real-time
               </p>
-              <div className="space-y-2 text-xs">
-                <p className="text-gray-300">
-                  🌊 <strong>Magnitude Detection</strong> → Only shows earthquakes > 4.0
+              <div className="space-y-2 text-sm">
+                <p className="text-slate-400">
+                  🌊 <span className="text-cyan-400">Magnitude Detection</span> → Only M4.0+ shown
                 </p>
-                <p className="text-gray-300">
-                  💥 <strong>Vibration Spike</strong> → Detected quake × 2 = Bridge vibration effect
+                <p className="text-slate-400">
+                  💥 <span className="text-cyan-400">Vibration Spike</span> → Realistic physical effect on bridge
                 </p>
-                <p className={`font-bold ${
-                  dataSource.earthquake.connected ? 'text-green-400' : 'text-orange-400'
+                <p className={`font-bold text-sm ${
+                  dataSource.earthquake.connected ? 'text-green-400' : 'text-yellow-400'
                 }`}>
                   {dataSource.earthquake.connected 
                     ? '✓ Connected: Real earthquakes monitored'
@@ -388,17 +396,18 @@ const Dashboard = () => {
 
         {/* Alert Box */}
         {isHighRisk && (
-          <div className="mb-6 p-4 bg-red-100 border-l-4 border-red-500 rounded-lg shadow-lg animate-pulse">
-            <div className="flex items-center">
-              <span className="text-2xl mr-3">⚠️</span>
-              <div>
-                <h3 className="text-lg font-bold text-red-700">
-                  High Structural Risk Detected
+          <div className="mb-8 p-6 bg-gradient-to-r from-red-900 via-red-800 to-red-900 border-2 border-red-500 rounded-lg shadow-glow-lg animate-pulse backdrop-blur-sm">
+            <div className="flex items-center space-x-4">
+              <span className="text-5xl">⚠️</span>
+              <div className="flex-1">
+                <h3 className="text-2xl font-bold text-red-200 mb-2">
+                  🔴 High Structural Risk Detected
                 </h3>
-                <p className="text-red-600 text-sm">
-                  Risk score exceeds safe threshold. Immediate inspection recommended.
+                <p className="text-red-100 text-lg font-semibold">
+                  Risk score exceeds safe threshold. Immediate inspection and maintenance recommended.
                 </p>
               </div>
+              <span className="text-4xl animate-bounce">⚡</span>
             </div>
           </div>
         )}

@@ -72,8 +72,9 @@ The Smart Bridge Digital Twin Platform has been successfully upgraded from a sim
 ### PART 6: MULTI-BRIDGE SUPPORT ✅
 **Status:** COMPLETE
 - ✅ Bridge schema with name, location, status
-- ✅ Admin can create bridges
+- ✅ Admin can create bridges (and does so via the new Admin Panel interface)
 - ✅ Engineer can view bridges
+- ✅ Features page now differentiates between admin vs engineer roles; admin users see extra options and the Admin Panel link
 - ✅ Bridge dropdown in UI
 - ✅ Bridge-specific data tracking
 - **Backend:** Already complete & verified

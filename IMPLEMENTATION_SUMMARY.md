@@ -73,13 +73,14 @@ All requested features have been successfully implemented for the Smart Bridge D
 **Route:** `/dashboard`
 
 **Implemented Features:**
-- ✅ PrivateRoute component for route protection
-- ✅ Only logged-in users can access
+- ✅ PrivateRoute component for route protection (now also supports admin-only routes)
+- ✅ Only logged-in users can access protected pages
 - ✅ Enhanced Navbar with:
   - User name display
   - User dropdown menu
   - Logout button
-  - Navigation links (Dashboard, History, Alerts)
+  - Navigation links (Dashboard, History, Alerts and - for admins - Admin Panel)
+- ✅ Role-aware feature filtering, with marketing page adapting based on login state
 - ✅ Real-time monitoring UI (existing dashboard preserved)
 - ✅ Responsive layout maintained
 - ✅ 3D bridge visualization
@@ -175,11 +176,17 @@ All requested features have been successfully implemented for the Smart Bridge D
 ```
 
 **Role-Based Access:**
-- ✅ Admin can create bridges (POST /api/bridges with admin authorization)
+- ✅ Admin can create and manage bridges (POST /api/bridges with admin authorization and Admin Panel UI)
 - ✅ Engineers can view bridges (GET /api/bridges - all roles)
-- ✅ Bridge-specific data tracking
+- ✅ Dashboard and history pages display data for all bridges; non-admins only see their permitted subset
 - ✅ Dropdown selectors on History and Alerts pages
 - ✅ Multi-user support
+
+**Admin Interface:**
+- ✅ Dedicated `/admin` page linked in the navbar for users with the admin role
+- ✅ Simple bridge creation form and list on Admin Page
+- ✅ Placeholder section for future user management features
+- ✅ Non-admin users are redirected away from `/admin`
 
 **Files:**
 - `backend/src/models/Bridge.js` (existing, verified)

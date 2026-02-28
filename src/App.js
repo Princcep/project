@@ -16,6 +16,7 @@ import FinalizationPage from './pages/FinalizationPage';
 import UserProfile from './pages/UserProfile';
 import FeaturesPage from './pages/FeaturesPage';
 import FeatureDetailPage from './pages/FeatureDetailPage';
+import AdminPage from './pages/AdminPage';
 
 function App() {
   return (
@@ -33,6 +34,7 @@ function App() {
 
           {/* Protected Pages */}
           <Route path="/dashboard" element={<PrivateRoute component={Dashboard} />} />
+          <Route path="/admin" element={<PrivateRoute component={AdminPage} adminOnly={true} />} />
           <Route path="/profile" element={<PrivateRoute component={UserProfile} />} />
           <Route path="/history" element={<PrivateRoute component={HistoryPage} />} />
           <Route path="/alerts" element={<PrivateRoute component={AlertsPage} />} />

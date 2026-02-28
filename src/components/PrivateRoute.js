@@ -2,8 +2,8 @@ import React from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '../utils/AuthContext';
 
-const PrivateRoute = ({ component: Component }) => {
-  const { isAuthenticated, loading } = useAuth();
+const PrivateRoute = ({ component: Component, adminOnly = false }) => {
+  const { isAuthenticated, loading, isAdmin } = useAuth();
 
   if (loading) {
     return (
@@ -18,6 +18,11 @@ const PrivateRoute = ({ component: Component }) => {
 
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />;
+  }
+
+  if (adminOnly && !isAdmin) {
+    // redirect non-admins to dashboard
+    return <Navigate to="/dashboard" replace />;
   }
 
   return <Component />;

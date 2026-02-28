@@ -2,7 +2,7 @@ const Bridge = require('../models/Bridge');
 const BridgeData = require('../models/BridgeData');
 const Alert = require('../models/Alert');
 
-// Get all bridges
+// Get all bridges (public)
 exports.getBridges = async (req, res) => {
   try {
     const bridges = await Bridge.find().sort({ createdAt: -1 });

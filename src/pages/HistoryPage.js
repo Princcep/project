@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-import { sensorDataAPI, bridgesAPI } from '../utils/api';
+import { sensorDataAPI, bridgesAPI, alertsAPI } from '../utils/api';
 import { useAuth } from '../utils/AuthContext';
+import Navbar from '../components/Navbar';
+import BridgeModel from '../components/BridgeModel';
 
 const HistoryPage = () => {
   const [bridges, setBridges] = useState([]);
@@ -10,6 +12,11 @@ const HistoryPage = () => {
   const [historyData, setHistoryData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [latestData, setLatestData] = useState(null);
+  const [alerts, setAlerts] = useState([]);
+  const [simRunning, setSimRunning] = useState(false);
+  const [onlyShowGreen, setOnlyShowGreen] = useState(false);
+  const simRef = React.useRef(null);
   const { user } = useAuth();
 
   // Fetch bridges on mount
@@ -21,7 +28,11 @@ const HistoryPage = () => {
   useEffect(() => {
     if (selectedBridgeId) {
       fetchHistoricalData();
+      fetchLatestData();
+      fetchAlerts();
     }
+    // stop simulation when switching bridge
+    return () => stopSimulation();
   }, [selectedBridgeId, hours]);
 
   const fetchBridges = async () => {
@@ -61,6 +72,81 @@ const HistoryPage = () => {
       setError('Failed to load historical data');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchLatestData = async () => {
+    try {
+      if (!selectedBridgeId) return;
+      const res = await sensorDataAPI.getLatest(selectedBridgeId);
+      setLatestData(res.data.data || null);
+    } catch (err) {
+      console.error('Error fetching latest data:', err);
+    }
+  };
+
+  const fetchAlerts = async () => {
+    try {
+      if (!selectedBridgeId) return;
+      const res = await alertsAPI.getAlerts(selectedBridgeId);
+      setAlerts(res.data.data || []);
+    } catch (err) {
+      console.error('Error fetching alerts:', err);
+    }
+  };
+
+  const startSimulation = (intervalMs = 2500) => {
+    if (!selectedBridgeId || simRef.current) return;
+    setSimRunning(true);
+    simRef.current = setInterval(async () => {
+      try {
+        // generate realistic random values around last known values
+        const base = latestData || { vibration: 10, load: 20, crack: 2, temperature: 22, riskScore: 5 };
+        const rand = (v, pct=0.15) => Math.max(0, v + (Math.random() - 0.5) * v * pct);
+        const payload = {
+          bridgeId: selectedBridgeId,
+          vibration: parseFloat(rand(base.vibration || 10).toFixed(2)),
+          load: parseFloat(rand(base.load || 20).toFixed(2)),
+          crack: parseFloat(rand(base.crack || 2).toFixed(2)),
+          temperature: parseFloat(rand(base.temperature || 22).toFixed(2)),
+          riskScore: parseFloat(Math.min(100, rand(base.riskScore || 5, 0.4)).toFixed(2)),
+        };
+        await sensorDataAPI.addData(payload);
+        // refresh lists
+        await fetchHistoricalData();
+        await fetchLatestData();
+        await fetchAlerts();
+      } catch (e) {
+        console.error('Simulation error', e);
+      }
+    }, intervalMs);
+  };
+
+  const stopSimulation = () => {
+    if (simRef.current) {
+      clearInterval(simRef.current);
+      simRef.current = null;
+    }
+    setSimRunning(false);
+  };
+
+  const triggerAlert = async () => {
+    if (!selectedBridgeId) return;
+    const payload = {
+      bridgeId: selectedBridgeId,
+      vibration: 200,
+      load: 200,
+      crack: 50,
+      temperature: 120,
+      riskScore: 95,
+    };
+    try {
+      await sensorDataAPI.addData(payload);
+      await fetchHistoricalData();
+      await fetchLatestData();
+      await fetchAlerts();
+    } catch (e) {
+      console.error('Error triggering alert', e);
     }
   };
 
@@ -105,48 +191,96 @@ const HistoryPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-950 to-slate-900 text-white">
-      {/* Header */}
-      <div className="bg-slate-800 bg-opacity-50 backdrop-blur-sm border-b border-blue-500 border-opacity-30">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <h1 className="text-3xl font-bold">📈 Historical Data</h1>
-          <p className="text-gray-400 text-sm mt-1">View sensor data and trends over time</p>
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+      <Navbar />
+      
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pt-24">
+        {/* Header */}
+        <div className="card-glow border-2 border-cyan-500 border-opacity-60 rounded-xl p-8 mb-8 shadow-glow-lg">
+          <h1 className="text-4xl font-bold text-cyan-400 flex items-center space-x-3">
+            <span className="text-5xl">📈</span>
+            <span>Historical Data & Analytics</span>
+          </h1>
+          <p className="text-slate-400 text-lg mt-3">View sensor data trends and patterns over time</p>
         </div>
-      </div>
 
-      {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Controls */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+          <div className="lg:col-span-2" />
+          <div className="card-elevated border-2 border-cyan-500 border-opacity-30 p-4">
+            <h3 className="text-sm font-bold text-cyan-400 mb-3">3D Model & Simulation</h3>
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <label className="text-sm text-gray-300">Show only green sensors</label>
+                <input type="checkbox" checked={onlyShowGreen} onChange={(e) => setOnlyShowGreen(e.target.checked)} />
+              </div>
+
+              <div className="flex space-x-2">
+                <button
+                  onClick={() => startSimulation()}
+                  disabled={simRunning || !selectedBridgeId}
+                  className="flex-1 px-3 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg disabled:opacity-50"
+                >Start Test Simulation</button>
+                <button
+                  onClick={() => stopSimulation()}
+                  disabled={!simRunning}
+                  className="px-3 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg disabled:opacity-50"
+                >Stop</button>
+              </div>
+
+              <button
+                onClick={() => triggerAlert()}
+                className="w-full px-3 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg"
+              >Trigger Alert (create test alert)</button>
+
+              <div className="mt-3">
+                <p className="text-xs text-gray-400 mb-2">Recent Alerts</p>
+                <div className="space-y-2 max-h-40 overflow-auto">
+                  {alerts.length === 0 && <p className="text-xs text-gray-500">No alerts</p>}
+                  {alerts.map((a) => (
+                    <div key={a._id} className={`p-2 rounded-md border ${a.resolved ? 'bg-slate-800 border-slate-700 text-slate-300' : a.severity === 'critical' ? 'bg-red-900 border-red-600 text-red-200' : 'bg-yellow-900 border-yellow-700 text-yellow-200'}`}>
+                      <p className="text-sm font-semibold">{a.message}</p>
+                      <p className="text-xs text-gray-400">{new Date(a.createdAt).toLocaleString()}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">Select Bridge</label>
+          <div className="card-elevated border-2 border-cyan-500 border-opacity-30 p-4">
+            <label className="block text-sm font-bold text-cyan-400 mb-3">
+              <img src="/logo.svg" alt="Bridge" className="inline h-4 w-auto mr-1" />
+              Select Bridge
+            </label>
             <select
               value={selectedBridgeId}
               onChange={(e) => setSelectedBridgeId(e.target.value)}
-              className="w-full px-4 py-2 bg-slate-700 border border-blue-500 border-opacity-30 rounded-lg text-white focus:outline-none focus:border-blue-500"
+              className="input-modern"
             >
               <option value="">-- Select a bridge --</option>
               {bridges.map((bridge) => (
-                <option key={bridge._id} value={bridge._id}>
+                <option key={bridge._id} value={bridge._id} className="bg-slate-800">
                   {bridge.name} - {bridge.location}
                 </option>
               ))}
             </select>
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">Time Range</label>
+          <div className="card-elevated border-2 border-cyan-500 border-opacity-30 p-4">
+            <label className="block text-sm font-bold text-cyan-400 mb-3">⏰ Time Range</label>
             <select
               value={hours}
               onChange={(e) => setHours(Number(e.target.value))}
-              className="w-full px-4 py-2 bg-slate-700 border border-blue-500 border-opacity-30 rounded-lg text-white focus:outline-none focus:border-blue-500"
+              className="input-modern"
             >
-              <option value={1}>Last 1 hour</option>
-              <option value={6}>Last 6 hours</option>
-              <option value={12}>Last 12 hours</option>
-              <option value={24}>Last 24 hours</option>
-              <option value={168}>Last 7 days</option>
-              <option value={720}>Last 30 days</option>
+              <option value={1} className="bg-slate-800">Last 1 hour</option>
+              <option value={6} className="bg-slate-800">Last 6 hours</option>
+              <option value={12} className="bg-slate-800">Last 12 hours</option>
+              <option value={24} className="bg-slate-800">Last 24 hours</option>
+              <option value={168} className="bg-slate-800">Last 7 days</option>
+              <option value={720} className="bg-slate-800">Last 30 days</option>
             </select>
           </div>
 
@@ -179,6 +313,43 @@ const HistoryPage = () => {
         )}
 
         {/* Charts */}
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="lg:col-span-2">
+            {/* Existing charts and stats will remain here (unchanged) */}
+          </div>
+
+          <div className="space-y-6">
+            <div className="bg-slate-800 bg-opacity-40 rounded-lg p-4 border border-cyan-500 border-opacity-20">
+              <h3 className="text-sm font-semibold text-white mb-2">3D Bridge Preview</h3>
+              <div style={{ height: 360 }}>
+                <BridgeModel
+                  riskScore={latestData?.riskScore || 0}
+                  vibration={latestData?.vibration || 0}
+                  load={latestData?.load || 0}
+                  crack={latestData?.crack || 0}
+                  temperature={latestData?.temperature || 0}
+                  onlyShowGreen={onlyShowGreen}
+                />
+              </div>
+            </div>
+
+            <div className="bg-slate-800 bg-opacity-40 rounded-lg p-4 border border-cyan-500 border-opacity-20">
+              <h3 className="text-sm font-semibold text-white mb-2">Latest Values</h3>
+              {latestData ? (
+                <div className="grid grid-cols-2 gap-2 text-sm text-gray-300">
+                  <div>Vibration: <strong className="text-white">{latestData.vibration}</strong></div>
+                  <div>Load: <strong className="text-white">{latestData.load}</strong></div>
+                  <div>Crack: <strong className="text-white">{latestData.crack}</strong></div>
+                  <div>Temp: <strong className="text-white">{latestData.temperature}</strong></div>
+                  <div>Risk: <strong className="text-white">{latestData.riskScore}</strong></div>
+                </div>
+              ) : (
+                <p className="text-xs text-gray-400">No latest data</p>
+              )}
+            </div>
+          </div>
+        </div>
         {!loading && historyData.length > 0 && (
           <div className="space-y-8">
             {/* Vibration Chart */}
@@ -369,13 +540,12 @@ const HistoryPage = () => {
             <p className="text-gray-400 text-lg">No historical data available for this bridge</p>
           </div>
         )}
-
         {!selectedBridgeId && (
           <div className="text-center py-12">
             <p className="text-gray-400 text-lg">Please select a bridge to view historical data</p>
           </div>
         )}
-      </div>
+      </main>
     </div>
   );
 };

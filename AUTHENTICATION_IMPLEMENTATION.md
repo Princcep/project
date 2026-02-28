@@ -218,6 +218,13 @@ localStorage: {
 - 3 quick login buttons with gradients
 - Test credentials info box
 - Error/success messages
+- Shows role badges (purple admin / green engineer)
+
+### **Post-login UI**
+- Navbar displays additional links depending on role
+  - Admin users see an "Admin Panel" link
+  - Engineer users see monitoring/history/alerts links
+- Features page adapts its list based on the current user's role
 
 ### **Navbar**
 - Shows current user name

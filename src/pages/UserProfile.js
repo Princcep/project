@@ -144,6 +144,14 @@ const UserProfile = () => {
           >
             📊 Go to Dashboard
           </Link>
+          {isAdmin && (
+            <Link
+              to="/admin"
+              className="bg-yellow-600 hover:bg-yellow-700 text-white font-bold py-3 px-6 rounded-lg transition text-center"
+            >
+              🛠️ Admin Panel
+            </Link>
+          )}
           <Link
             to="/alerts"
             className="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-lg transition text-center"

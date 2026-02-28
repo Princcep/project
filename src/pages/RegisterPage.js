@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../utils/AuthContext';
+import { UserIcon, EnvelopeIcon, CogIcon, KeyIcon, LockClosedIcon, ArrowLeftIcon, RocketLaunchIcon } from '@heroicons/react/24/outline';
 
 const RegisterPage = () => {
   const [formData, setFormData] = useState({
@@ -53,88 +54,99 @@ const RegisterPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 flex items-center justify-center px-4 py-8">
-      <div className="w-full max-w-md">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center px-4 py-8 relative overflow-hidden">
+      {/* Animated Background */}
+      <div className="fixed inset-0 opacity-20 pointer-events-none">
+        <div className="absolute top-20 left-10 w-72 h-72 bg-cyan-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-float"></div>
+        <div className="absolute bottom-20 right-10 w-72 h-72 bg-purple-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-float" style={{animationDelay: '2s'}}></div>
+      </div>
+
+      <div className="w-full max-w-md relative z-10">
         {/* Logo */}
-        <div className="text-center mb-8">
-          <div className="text-4xl mb-2">🌉</div>
-          <h1 className="text-3xl font-bold text-white">Smart Bridge</h1>
-          <p className="text-blue-300">Digital Twin Platform</p>
+        <div className="text-center mb-8 animate-fade-in">
+          <img src="/logo.svg" alt="Smart Bridge" className="mb-3 inline-block transform hover:scale-110 transition-transform duration-300 h-12 w-auto" />
+          <h1 className="text-4xl font-bold text-white mb-2">Smart Bridge</h1>
+          <p className="text-slate-400 text-lg">Create Your Account</p>
         </div>
 
         {/* Register Card */}
-        <div className="bg-slate-800 bg-opacity-50 backdrop-blur-sm border border-blue-500 border-opacity-30 rounded-lg p-8 shadow-2xl">
-          <h2 className="text-2xl font-bold text-white mb-6 text-center">Create Account</h2>
+        <div className="card-glow border-2 border-cyan-500 border-opacity-60 shadow-glow-lg p-8 backdrop-blur-md">
+          <h2 className="text-3xl font-bold text-transparent bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text mb-8 text-center">
+            Join Our Platform
+          </h2>
 
           {error && (
-            <div className="bg-red-500 bg-opacity-20 border border-red-500 text-red-300 px-4 py-3 rounded-lg mb-6">
-              {error}
+            <div className="bg-red-500 bg-opacity-30 border-2 border-red-500 text-red-200 px-4 py-3 rounded-lg mb-6 animate-slide-down backdrop-blur-sm">
+              <div className="flex items-center gap-3">
+                <span className="text-lg">⚠️</span>
+                <span className="font-semibold">{error}</span>
+              </div>
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">Full Name</label>
+          <form onSubmit={handleSubmit} className="space-y-5">
+            <div className="animate-fade-in">
+              <label className="block text-sm font-bold text-cyan-400 mb-3">Full Name</label>
               <input
                 type="text"
                 name="name"
                 value={formData.name}
                 onChange={handleChange}
-                className="w-full px-4 py-2 bg-slate-700 border border-blue-500 border-opacity-30 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                className="input-modern"
                 placeholder="John Doe"
                 required
               />
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">Email</label>
+            <div className="animate-fade-in">
+              <label className="block text-sm font-bold text-cyan-400 mb-3">Email Address</label>
               <input
                 type="email"
                 name="email"
                 value={formData.email}
                 onChange={handleChange}
-                className="w-full px-4 py-2 bg-slate-700 border border-blue-500 border-opacity-30 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                className="input-modern"
                 placeholder="your@email.com"
                 required
               />
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">Role</label>
+            <div className="animate-fade-in">
+              <label className="block text-sm font-bold text-cyan-400 mb-3">Select Role</label>
               <select
                 name="role"
                 value={formData.role}
                 onChange={handleChange}
-                className="w-full px-4 py-2 bg-slate-700 border border-blue-500 border-opacity-30 rounded-lg text-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                className="input-modern"
               >
-                <option value="engineer">Engineer (Can view)</option>
-                <option value="admin">Admin (Can manage)</option>
+                <option value="engineer" className="bg-slate-800">Engineer (View Access)</option>
+                <option value="admin" className="bg-slate-800">Admin (Full Access)</option>
               </select>
-              <p className="text-xs text-gray-400 mt-1">Choose your role. You can change it later.</p>
+              <p className="text-xs text-slate-400 mt-2">Choose your role. You can change it later from settings.</p>
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">Password</label>
+            <div className="animate-fade-in">
+              <label className="block text-sm font-bold text-cyan-400 mb-3">Password</label>
               <input
                 type="password"
                 name="password"
                 value={formData.password}
                 onChange={handleChange}
-                className="w-full px-4 py-2 bg-slate-700 border border-blue-500 border-opacity-30 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                className="input-modern"
                 placeholder="••••••••"
                 required
               />
-              <p className="text-xs text-gray-400 mt-1">At least 6 characters</p>
+              <p className="text-xs text-slate-400 mt-2">Minimum 6 characters required</p>
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">Confirm Password</label>
+            <div className="animate-fade-in">
+              <label className="block text-sm font-bold text-cyan-400 mb-3">✓ Confirm Password</label>
               <input
                 type="password"
                 name="confirmPassword"
                 value={formData.confirmPassword}
                 onChange={handleChange}
-                className="w-full px-4 py-2 bg-slate-700 border border-blue-500 border-opacity-30 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                className="input-modern"
                 placeholder="••••••••"
                 required
               />
@@ -143,27 +155,30 @@ const RegisterPage = () => {
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-2 bg-blue-500 hover:bg-blue-600 text-white font-bold rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed mt-6"
+              className="btn-primary w-full shadow-glow hover:shadow-glow-lg disabled:opacity-50 disabled:cursor-not-allowed mt-8 font-bold text-lg py-3 transform hover:scale-105 active:scale-95 transition-all duration-300"
             >
-              {loading ? 'Creating Account...' : 'Register'}
+              {loading ? 'Creating Account...' : 'Create Account'}
             </button>
           </form>
 
           {/* Login Link */}
-          <p className="text-center text-gray-400 mt-6">
+          <p className="text-center text-slate-400 mt-6">
             Already have an account?{' '}
-            <Link to="/login" className="text-blue-400 hover:text-blue-300 font-medium">
-              Login
+            <Link to="/login" className="text-cyan-400 hover:text-cyan-300 font-bold transition-colors duration-300">
+              Login Now
             </Link>
           </p>
 
           {/* Home Link */}
-          <p className="text-center text-gray-400 mt-4">
-            <Link to="/" className="text-gray-500 hover:text-gray-400 text-sm">
-              Back to Home
+          <p className="text-center text-slate-500 mt-4">
+            <Link to="/" className="text-slate-500 hover:text-slate-400 transition-colors duration-300 text-sm font-semibold">
+              ← Back to Home
             </Link>
           </p>
         </div>
+
+        {/* Footer info */}
+        <p className="text-center text-slate-500 text-xs mt-6">Built for Hackathon 2026</p>
       </div>
     </div>
   );

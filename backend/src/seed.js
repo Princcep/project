@@ -17,10 +17,7 @@ const seedDatabase = async () => {
   try {
     // Connect to MongoDB
     console.log('Connecting to MongoDB...');
-    await mongoose.connect(config.MONGODB_URI, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-    });
+    await mongoose.connect(config.MONGODB_URI);
     console.log('✅ MongoDB connected');
 
     // Clear existing data

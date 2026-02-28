@@ -144,7 +144,7 @@ const TrussSection = ({ position }) => {
 /* =========================
    BRIDGE STRUCTURE
 ========================= */
-const BridgeStructure = ({ riskScore = 0, vibration, load, crack, temperature, onSensorClick }) => {
+const BridgeStructure = ({ riskScore = 0, vibration, load, crack, temperature, onSensorClick, onlyShowGreen = false }) => {
   const bridgeRef = useRef();
   const sections = 8;
   const spacing = 4;
@@ -224,66 +224,120 @@ const BridgeStructure = ({ riskScore = 0, vibration, load, crack, temperature, o
 
       {/* SENSOR POINTS ON BRIDGE */}
       {/* Vibration Sensors - Multiple points along bridge */}
-      <SensorPoint
-        position={[-8, 2, 0]}
-        sensorData={{ value: vibration, threshold: 70, unit: "m/s²" }}
-        sensorType="Vibration"
-        onSensorClick={onSensorClick}
-      />
-      <SensorPoint
-        position={[0, 2, 0]}
-        sensorData={{ value: vibration, threshold: 70, unit: "m/s²" }}
-        sensorType="Vibration"
-        onSensorClick={onSensorClick}
-      />
-      <SensorPoint
-        position={[8, 2, 0]}
-        sensorData={{ value: vibration, threshold: 70, unit: "m/s²" }}
-        sensorType="Vibration"
-        onSensorClick={onSensorClick}
-      />
+      {(function(){
+        const sd = { value: vibration, threshold: 70 };
+        const status = sd.value > sd.threshold ? 'critical' : sd.value > sd.threshold * 0.7 ? 'warning' : 'normal';
+        return (!onlyShowGreen || status === 'normal') ? (
+          <SensorPoint
+            position={[-8, 2, 0]}
+            sensorData={{ value: vibration, threshold: 70, unit: "m/s²" }}
+            sensorType="Vibration"
+            onSensorClick={onSensorClick}
+          />
+        ) : null;
+      })()}
+      {(function(){
+        const sd = { value: vibration, threshold: 70 };
+        const status = sd.value > sd.threshold ? 'critical' : sd.value > sd.threshold * 0.7 ? 'warning' : 'normal';
+        return (!onlyShowGreen || status === 'normal') ? (
+          <SensorPoint
+            position={[0, 2, 0]}
+            sensorData={{ value: vibration, threshold: 70, unit: "m/s²" }}
+            sensorType="Vibration"
+            onSensorClick={onSensorClick}
+          />
+        ) : null;
+      })()}
+      {(function(){
+        const sd = { value: vibration, threshold: 70 };
+        const status = sd.value > sd.threshold ? 'critical' : sd.value > sd.threshold * 0.7 ? 'warning' : 'normal';
+        return (!onlyShowGreen || status === 'normal') ? (
+          <SensorPoint
+            position={[8, 2, 0]}
+            sensorData={{ value: vibration, threshold: 70, unit: "m/s²" }}
+            sensorType="Vibration"
+            onSensorClick={onSensorClick}
+          />
+        ) : null;
+      })()}
 
       {/* Load Stress Sensors - On sidewalls */}
-      <SensorPoint
-        position={[-6, 2, 1.3]}
-        sensorData={{ value: load, threshold: 80, unit: "MN" }}
-        sensorType="Load Stress"
-        onSensorClick={onSensorClick}
-      />
-      <SensorPoint
-        position={[6, 2, 1.3]}
-        sensorData={{ value: load, threshold: 80, unit: "MN" }}
-        sensorType="Load Stress"
-        onSensorClick={onSensorClick}
-      />
+      {(function(){
+        const sd = { value: load, threshold: 80 };
+        const status = sd.value > sd.threshold ? 'critical' : sd.value > sd.threshold * 0.7 ? 'warning' : 'normal';
+        return (!onlyShowGreen || status === 'normal') ? (
+          <SensorPoint
+            position={[-6, 2, 1.3]}
+            sensorData={{ value: load, threshold: 80, unit: "MN" }}
+            sensorType="Load Stress"
+            onSensorClick={onSensorClick}
+          />
+        ) : null;
+      })()}
+      {(function(){
+        const sd = { value: load, threshold: 80 };
+        const status = sd.value > sd.threshold ? 'critical' : sd.value > sd.threshold * 0.7 ? 'warning' : 'normal';
+        return (!onlyShowGreen || status === 'normal') ? (
+          <SensorPoint
+            position={[6, 2, 1.3]}
+            sensorData={{ value: load, threshold: 80, unit: "MN" }}
+            sensorType="Load Stress"
+            onSensorClick={onSensorClick}
+          />
+        ) : null;
+      })()}
 
       {/* Temperature Sensors - On deck */}
-      <SensorPoint
-        position={[-10, 1.2, 0]}
-        sensorData={{ value: temperature, threshold: 35, unit: "°C" }}
-        sensorType="Temperature"
-        onSensorClick={onSensorClick}
-      />
-      <SensorPoint
-        position={[10, 1.2, 0]}
-        sensorData={{ value: temperature, threshold: 35, unit: "°C" }}
-        sensorType="Temperature"
-        onSensorClick={onSensorClick}
-      />
+      {(function(){
+        const sd = { value: temperature, threshold: 35 };
+        const status = sd.value > sd.threshold ? 'critical' : sd.value > sd.threshold * 0.7 ? 'warning' : 'normal';
+        return (!onlyShowGreen || status === 'normal') ? (
+          <SensorPoint
+            position={[-10, 1.2, 0]}
+            sensorData={{ value: temperature, threshold: 35, unit: "°C" }}
+            sensorType="Temperature"
+            onSensorClick={onSensorClick}
+          />
+        ) : null;
+      })()}
+      {(function(){
+        const sd = { value: temperature, threshold: 35 };
+        const status = sd.value > sd.threshold ? 'critical' : sd.value > sd.threshold * 0.7 ? 'warning' : 'normal';
+        return (!onlyShowGreen || status === 'normal') ? (
+          <SensorPoint
+            position={[10, 1.2, 0]}
+            sensorData={{ value: temperature, threshold: 35, unit: "°C" }}
+            sensorType="Temperature"
+            onSensorClick={onSensorClick}
+          />
+        ) : null;
+      })()}
 
       {/* Crack Width Sensors - On structural points */}
-      <SensorPoint
-        position={[-4, 4.2, 0]}
-        sensorData={{ value: crack, threshold: 15, unit: "mm" }}
-        sensorType="Crack Width"
-        onSensorClick={onSensorClick}
-      />
-      <SensorPoint
-        position={[4, 4.2, 0]}
-        sensorData={{ value: crack, threshold: 15, unit: "mm" }}
-        sensorType="Crack Width"
-        onSensorClick={onSensorClick}
-      />
+      {(function(){
+        const sd = { value: crack, threshold: 15 };
+        const status = sd.value > sd.threshold ? 'critical' : sd.value > sd.threshold * 0.7 ? 'warning' : 'normal';
+        return (!onlyShowGreen || status === 'normal') ? (
+          <SensorPoint
+            position={[-4, 4.2, 0]}
+            sensorData={{ value: crack, threshold: 15, unit: "mm" }}
+            sensorType="Crack Width"
+            onSensorClick={onSensorClick}
+          />
+        ) : null;
+      })()}
+      {(function(){
+        const sd = { value: crack, threshold: 15 };
+        const status = sd.value > sd.threshold ? 'critical' : sd.value > sd.threshold * 0.7 ? 'warning' : 'normal';
+        return (!onlyShowGreen || status === 'normal') ? (
+          <SensorPoint
+            position={[4, 4.2, 0]}
+            sensorData={{ value: crack, threshold: 15, unit: "mm" }}
+            sensorType="Crack Width"
+            onSensorClick={onSensorClick}
+          />
+        ) : null;
+      })()}
     </group>
   );
 };

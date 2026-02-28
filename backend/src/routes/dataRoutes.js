@@ -13,7 +13,8 @@ const { protect, authorize } = require('../middleware/auth');
 const router = express.Router();
 
 // Bridge routes
-router.get('/bridges', protect, getBridges);
+// GET all bridges is public for demo/mock users (no auth required)
+router.get('/bridges', getBridges);
 router.post('/bridges', protect, authorize('admin'), createBridge);
 router.get('/bridges/:id', protect, getBridgeById);
 

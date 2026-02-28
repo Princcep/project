@@ -136,23 +136,26 @@ After logging in, test these pages:
 
 ## 📊 ROLE-BASED FEATURES
 
-### **ADMIN Role Permissions**
-✓ View all dashboards
-✓ Manage users
-✓ Configure system settings
-✓ View all alerts
-✓ Generate reports
-✓ System administration
-✓ Access profile menu with admin badge
+### **ADMIN Role Permissions & Interface**
+- ✅ View all dashboards and history for every bridge
+- ✅ Create and manage bridges (via Admin Panel link in navbar)
+- ✅ Manage users (add/change roles/disable accounts) – accessible from Admin Panel
+- ✅ Configure system-wide settings such as risk thresholds and alert rules
+- ✅ Generate reports and view system logs
+- ✅ Full system administration capabilities
+- ✅ See purple “👤 Admin” badge in profile menu
+- 🛠️ Admin panel appears in the navbar when logged in; clicking it opens a dedicated interface with bridge administration and user management placeholders.
 
-### **ENGINEER Role Permissions**
-✓ View monitoring dashboard
-✓ Analyze sensor data
-✓ Receive alerts
-✓ View history
-✓ Export data
-✓ Access technical support
-✓ Access profile menu with engineer badge
+### **ENGINEER Role Permissions & Interface**
+- ✅ View monitoring dashboard with live sensor data
+- ✅ Analyze sensor data, export charts/csv
+- ✅ Receive and respond to alerts
+- ✅ View historical data for selected bridges
+- ✅ Export data and download reports
+- ✅ Access technical support resources
+- ✅ See green “⚙️ Engineer” badge in profile menu
+
+*Note: unauthenticated visitors on the public “Features” page only see the generic marketing features; once logged in their view will adapt based on role.*
 
 ### **USER Role Permissions**
 ✓ View dashboard

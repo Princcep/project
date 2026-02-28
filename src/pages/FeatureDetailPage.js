@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
+import { ChartBarIcon, WrenchIcon, BoltIcon, GlobeAltIcon } from '@heroicons/react/24/outline';
 
 const FeatureDetailPage = () => {
   const navigate = useNavigate();
@@ -9,7 +10,7 @@ const FeatureDetailPage = () => {
   const features = {
     monitoring: {
       title: 'Real-time Structural Monitoring',
-      icon: '📊',
+      icon: <ChartBarIcon className="h-12 w-12 text-cyan-400" />,
       color: 'from-blue-600 to-blue-700',
       overview: 'Monitor every aspect of your bridge infrastructure in real-time with advanced sensor networks and instant data processing.',
       benefits: [
@@ -39,7 +40,7 @@ const FeatureDetailPage = () => {
     },
     maintenance: {
       title: 'Predictive Maintenance',
-      icon: '🔧',
+      icon: <WrenchIcon className="h-12 w-12 text-green-400" />,
       color: 'from-green-600 to-green-700',
       overview: 'Leverage AI and machine learning to predict equipment failures before they happen and optimize maintenance schedules.',
       benefits: [
@@ -69,7 +70,7 @@ const FeatureDetailPage = () => {
     },
     'risk-assessment': {
       title: 'AI-based Risk Assessment',
-      icon: '🤖',
+      icon: <BoltIcon className="h-12 w-12 text-purple-400" />,
       color: 'from-purple-600 to-purple-700',
       overview: 'Advanced machine learning algorithms analyze structural data to identify risks and provide risk scoring for proactive decision-making.',
       benefits: [
@@ -99,7 +100,7 @@ const FeatureDetailPage = () => {
     },
     visualization: {
       title: '3D Digital Twin Visualization',
-      icon: '🌐',
+      icon: <GlobeAltIcon className="h-12 w-12 text-orange-400" />,
       color: 'from-orange-600 to-orange-700',
       overview: 'Interact with a detailed 3D model of your bridge infrastructure with real-time data overlays and historical comparisons.',
       benefits: [
