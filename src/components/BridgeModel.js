@@ -1,4 +1,4 @@
-import React, { useRef, useState } from "react";
+import React, { useRef, useState, useEffect } from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
 import { OrbitControls } from "@react-three/drei";
 
@@ -33,206 +33,70 @@ const WarningHalo = ({ position, sensorData, isWarning, isCritical }) => {
   return (
     <mesh ref={haloRef} position={position}>
       <sphereGeometry args={[0.6, 8, 8]} />
-      <meshBasicMaterial
-        color={isCritical ? "#ff3b30" : "#ff9500"}
-        opacity={0.15}
-        transparent={true}
-        wireframe={false}
-      />
-    </mesh>
-  );
-};
+      /* =========================
+         FINAL MODEL EXPORT (SIMPLIFIED)
+      ========================= */
+      const BridgeModel = ({ riskScore = 0, vibration = 0, load = 0, crack = 0, temperature = 0, lightColor = '#ffffff' }) => {
+        const [selectedSensor, setSelectedSensor] = useState(null);
+        const [ambientColor, setAmbientColor] = useState('#ffffff');
+        const [ambientIntensity, setAmbientIntensity] = useState(0.6);
 
-/* =========================
-   SENSOR POINT COMPONENT
-========================= */
-const SensorPoint = ({ position, sensorData, sensorType, onSensorClick }) => {
-  const meshRef = useRef();
-  
-  // Determine color and status based on sensor value and threshold
-  const getStatus = () => {
-    const { value, threshold } = sensorData;
-    if (value > threshold) return { color: "#ff3b30", status: "critical", label: "🔴" };
-    if (value > threshold * 0.7) return { color: "#ff9500", status: "warning", label: "🟡" };
-    return { color: "#34c759", status: "normal", label: "🟢" };
-  };
-
-  const { color, status, label } = getStatus();
-  const isCritical = status === "critical";
-  const isWarning = status === "warning";
-
-  useFrame(({ clock }) => {
-    if (meshRef.current && (isCritical || isWarning)) {
-      const time = clock.getElapsedTime();
-      const pulseFactor = isCritical ? 6 : 3; // Critical pulses faster
-      const pulseAmount = isCritical ? 0.15 : 0.1;
-      
-      meshRef.current.scale.set(
-        1 + Math.sin(time * pulseFactor) * pulseAmount,
-        1 + Math.sin(time * pulseFactor) * pulseAmount,
-        1 + Math.sin(time * pulseFactor) * pulseAmount
-      );
-    }
-  });
-
-  const handleClick = () => {
-    onSensorClick({ ...sensorData, sensorType, position, status });
-  };
-
-  return (
-    <group>
-      {/* Warning/Critical Halo */}
-      {(isCritical || isWarning) && (
-        <WarningHalo position={position} sensorData={sensorData} isWarning={isWarning} isCritical={isCritical} />
-      )}
-
-      {/* Main Sensor Point */}
-      <mesh
-        ref={meshRef}
-        position={position}
-        onClick={handleClick}
-        onPointerEnter={() => {
-          if (meshRef.current && status === "normal") {
-            meshRef.current.scale.set(1.3, 1.3, 1.3);
+        useEffect(() => {
+          if (lightColor && lightColor !== '#ffffff') {
+            setAmbientColor(lightColor);
+            setAmbientIntensity(1.2);
+            const timer = setTimeout(() => {
+              setAmbientColor('#ffffff');
+              setAmbientIntensity(0.6);
+            }, 2000);
+            return () => clearTimeout(timer);
           }
-        }}
-        onPointerLeave={() => {
-          if (meshRef.current && status === "normal") {
-            meshRef.current.scale.set(1, 1, 1);
-          }
-        }}
-      >
-        <sphereGeometry args={[0.3, 16, 16]} />
-        <meshStandardMaterial
-          color={color}
-          emissive={color}
-          emissiveIntensity={isCritical ? 1 : isWarning ? 0.8 : 0.5}
-          metalness={0.9}
-          roughness={0.1}
-        />
-      </mesh>
-    </group>
-  );
-};
+        }, [lightColor]);
 
-/* =========================
-   TRUSS SECTION
-========================= */
-const TrussSection = ({ position }) => {
-  return (
-    <group position={position}>
-      {/* Vertical Beam */}
-      <mesh position={[0, 2, 0]}>
-        <boxGeometry args={[0.25, 4, 0.25]} />
-        <meshStandardMaterial color="#cfd8dc" metalness={0.7} roughness={0.3} />
-      </mesh>
+        const handleSensorClick = (s) => setSelectedSensor(s);
 
-      {/* X Bracing */}
-      <mesh rotation={[0, 0, Math.PI / 4]} position={[0, 2, 0]}>
-        <boxGeometry args={[0.2, 4.8, 0.2]} />
-        <meshStandardMaterial color="#b0bec5" metalness={0.8} />
-      </mesh>
+        return (
+          <div className="relative w-full h-full">
+            <Canvas camera={{ position: [18, 10, 18], fov: 50 }} style={{ background: '#0b1120' }}>
+              <ambientLight intensity={ambientIntensity} color={ambientColor} />
+              <directionalLight position={[15, 20, 10]} intensity={1.2} color={ambientColor} />
+              <gridHelper args={[100, 100, '#1e293b', '#1e293b']} />
 
-      <mesh rotation={[0, 0, -Math.PI / 4]} position={[0, 2, 0]}>
-        <boxGeometry args={[0.2, 4.8, 0.2]} />
-        <meshStandardMaterial color="#b0bec5" metalness={0.8} />
-      </mesh>
-    </group>
-  );
-};
+              <BridgeStructure
+                riskScore={riskScore}
+                vibration={vibration}
+                load={load}
+                crack={crack}
+                temperature={temperature}
+                onSensorClick={handleSensorClick}
+              />
 
-/* =========================
-   BRIDGE STRUCTURE
-========================= */
-const BridgeStructure = ({ riskScore = 0, vibration, load, crack, temperature, onSensorClick, onlyShowGreen = false }) => {
-  const bridgeRef = useRef();
-  const sections = 8;
-  const spacing = 4;
+              <OrbitControls enablePan={false} enableZoom={true} minDistance={10} maxDistance={50} minPolarAngle={0} maxPolarAngle={Math.PI / 2} />
+            </Canvas>
 
-  const bridgeColor =
-    riskScore > 75
-      ? "#ff3b30"
-      : riskScore > 50
-      ? "#ff9500"
-      : "#90a4ae";
+            {selectedSensor && (
+              <div className="mt-4 w-full flex justify-end">
+                <div className="rounded-lg p-4 shadow-2xl max-w-md w-full border z-10 bg-slate-900">
+                  <div className="flex items-start justify-between mb-2">
+                    <div>
+                      <p className="text-xs text-gray-400">{selectedSensor.sensorType}</p>
+                      <p className="text-lg font-semibold">{selectedSensor.value}{selectedSensor.unit}</p>
+                    </div>
+                    <button onClick={() => setSelectedSensor(null)} className="ml-2 px-2 py-1 rounded-md">✕</button>
+                  </div>
+                  <div className="text-sm text-gray-300">Status: {selectedSensor.status}</div>
+                </div>
+              </div>
+            )}
 
-  useFrame(({ clock }) => {
-    const time = clock.getElapsedTime();
-    if (bridgeRef.current) {
-      bridgeRef.current.position.y =
-        Math.sin(time * 4) * (riskScore / 300);
-    }
-  });
+            <div className="mt-3 w-full flex justify-start">
+              <div className="text-xs text-gray-400 bg-slate-900 bg-opacity-40 rounded-md px-3 py-2">🎯 Interactive Bridge — Click a sensor to view details.</div>
+            </div>
+          </div>
+        );
+      };
 
-  return (
-    <group ref={bridgeRef}>
-      {/* Bottom Beam */}
-      <mesh position={[0, 0, 0]}>
-        <boxGeometry args={[sections * spacing, 0.5, 2]} />
-        <meshStandardMaterial
-          color={bridgeColor}
-          metalness={0.8}
-          roughness={0.3}
-        />
-      </mesh>
-
-      {/* Deck */}
-      <mesh position={[0, 0.5, 0]}>
-        <boxGeometry args={[sections * spacing, 0.3, 2.5]} />
-        <meshStandardMaterial color="#607d8b" />
-      </mesh>
-
-      {/* Top Beam */}
-      <mesh position={[0, 4, 0]}>
-        <boxGeometry args={[sections * spacing, 0.4, 0.4]} />
-        <meshStandardMaterial color="#eceff1" />
-      </mesh>
-
-      {/* Side Beams */}
-      <mesh position={[0, 2, 1]}>
-        <boxGeometry args={[sections * spacing, 0.2, 0.2]} />
-        <meshStandardMaterial color="#b0bec5" />
-      </mesh>
-
-      <mesh position={[0, 2, -1]}>
-        <boxGeometry args={[sections * spacing, 0.2, 0.2]} />
-        <meshStandardMaterial color="#b0bec5" />
-      </mesh>
-
-      {/* Railings */}
-      <mesh position={[0, 4.5, 1.2]}>
-        <boxGeometry args={[sections * spacing, 0.15, 0.15]} />
-        <meshStandardMaterial color="#ff7043" />
-      </mesh>
-
-      <mesh position={[0, 4.5, -1.2]}>
-        <boxGeometry args={[sections * spacing, 0.15, 0.15]} />
-        <meshStandardMaterial color="#ff7043" />
-      </mesh>
-
-      {/* Truss Sections */}
-      {Array.from({ length: sections }).map((_, i) => (
-        <TrussSection
-          key={i}
-          position={[
-            -((sections - 1) * spacing) / 2 + i * spacing,
-            0,
-            0,
-          ]}
-        />
-      ))}
-
-      {/* SENSOR POINTS ON BRIDGE */}
-      {/* Vibration Sensors - Multiple points along bridge */}
-      {(function(){
-        const sd = { value: vibration, threshold: 70 };
-        const status = sd.value > sd.threshold ? 'critical' : sd.value > sd.threshold * 0.7 ? 'warning' : 'normal';
-        return (!onlyShowGreen || status === 'normal') ? (
-          <SensorPoint
-            position={[-8, 2, 0]}
-            sensorData={{ value: vibration, threshold: 70, unit: "m/s²" }}
-            sensorType="Vibration"
-            onSensorClick={onSensorClick}
+      export default BridgeModel;
           />
         ) : null;
       })()}
@@ -343,14 +207,29 @@ const BridgeStructure = ({ riskScore = 0, vibration, load, crack, temperature, o
 };
 
 /* =========================
-   FINAL MODEL EXPORT
+   FINAL MODEL EXPORT (SIMPLIFIED)
 ========================= */
-const BridgeModel = ({ riskScore, vibration, load, crack, temperature }) => {
+const BridgeModel = ({ riskScore = 0, vibration = 0, load = 0, crack = 0, temperature = 0, lightColor = '#ffffff' }) => {
   const [selectedSensor, setSelectedSensor] = useState(null);
+  const [ambientColor, setAmbientColor] = useState('#ffffff');
+  const [ambientIntensity, setAmbientIntensity] = useState(0.6);
 
   const handleSensorClick = (sensor) => {
     setSelectedSensor(sensor);
   };
+
+  // flash ambient light when color prop changes
+  useEffect(() => {
+    if (lightColor && lightColor !== '#ffffff') {
+      setAmbientColor(lightColor);
+      setAmbientIntensity(1.2);
+      const timeout = setTimeout(() => {
+        setAmbientColor('#ffffff');
+        setAmbientIntensity(0.6);
+      }, 3000);
+      return () => clearTimeout(timeout);
+    }
+  }, [lightColor]);
 
   return (
     <div className="relative w-full h-full">
@@ -359,8 +238,8 @@ const BridgeModel = ({ riskScore, vibration, load, crack, temperature }) => {
         camera={{ position: [18, 10, 18], fov: 50 }}
         style={{ background: "#0b1120" }}
       >
-        <ambientLight intensity={0.6} />
-        <directionalLight position={[15, 20, 10]} intensity={1.2} />
+        <ambientLight intensity={ambientIntensity} color={ambientColor} />
+        <directionalLight position={[15, 20, 10]} intensity={1.2} color={ambientColor} />
 
         <gridHelper args={[100, 100, "#1e293b", "#1e293b"]} />
 
@@ -383,45 +262,47 @@ const BridgeModel = ({ riskScore, vibration, load, crack, temperature }) => {
         />
       </Canvas>
 
-      {/* Sensor Detail Panel - Bottom Left */}
+      {/* Sensor Detail Panel - moved below the model (right side) to avoid covering the 3D view */}
       {selectedSensor && (
-        <div className={`absolute bottom-4 left-4 rounded-lg p-4 shadow-2xl max-w-xs border ${
-          selectedSensor.status === 'critical' 
-            ? 'bg-gradient-to-br from-red-950 to-red-900 border-red-500'
-            : selectedSensor.status === 'warning'
-            ? 'bg-gradient-to-br from-yellow-950 to-yellow-900 border-yellow-500'
-            : 'bg-gradient-to-br from-slate-900 to-slate-800 border-blue-500'
-        }`}>
-          <div className="flex items-start justify-between mb-3">
-            <div>
-              <p className={`text-xs font-semibold uppercase ${
-                selectedSensor.status === 'critical' ? 'text-red-300' : 
-                selectedSensor.status === 'warning' ? 'text-yellow-300' :
-                'text-gray-400'
-              }`}>
-                {selectedSensor.status === 'critical' ? '⚠️ CRITICAL ALERT' : 
-                 selectedSensor.status === 'warning' ? '⚡ WARNING STATUS' :
-                 '✅ Sensor Data'}
-              </p>
-              <p className={`text-xl font-bold ${
-                selectedSensor.status === 'critical' ? 'text-red-400' : 
-                selectedSensor.status === 'warning' ? 'text-yellow-400' :
-                'text-blue-400'
-              }`}>{selectedSensor.sensorType}</p>
+        <div className="mt-4 w-full flex justify-end">
+          <div className={`rounded-lg p-4 shadow-2xl max-w-md w-full border z-10 ${
+            selectedSensor.status === 'critical'
+              ? 'bg-gradient-to-br from-red-950 to-red-900 border-red-500'
+              : selectedSensor.status === 'warning'
+              ? 'bg-gradient-to-br from-yellow-950 to-yellow-900 border-yellow-500'
+              : 'bg-gradient-to-br from-slate-900 to-slate-800 border-blue-500'
+          }`}>
+            <div className="flex items-start justify-between mb-2">
+              <div>
+                <p className={`text-xs font-semibold uppercase ${
+                  selectedSensor.status === 'critical' ? 'text-red-300' :
+                  selectedSensor.status === 'warning' ? 'text-yellow-300' :
+                  'text-gray-400'
+                }`}>
+                  {selectedSensor.status === 'critical' ? '⚠️ CRITICAL' :
+                   selectedSensor.status === 'warning' ? '⚡ WARNING' :
+                   '✅ Sensor'}
+                </p>
+                <p className={`text-lg font-semibold truncate ${
+                  selectedSensor.status === 'critical' ? 'text-red-400' :
+                  selectedSensor.status === 'warning' ? 'text-yellow-400' :
+                  'text-blue-300'
+                }`} title={selectedSensor.sensorType}>{selectedSensor.sensorType}</p>
+              </div>
+              <button
+                onClick={() => setSelectedSensor(null)}
+                className={`ml-2 px-2 py-1 rounded-md transition-all duration-200 font-semibold text-base hover:scale-110 active:scale-95 ${
+                  selectedSensor.status === 'critical' ? 'bg-red-600 bg-opacity-30 text-red-200 hover:bg-opacity-50 border border-red-500 border-opacity-40' :
+                  selectedSensor.status === 'warning' ? 'bg-yellow-600 bg-opacity-30 text-yellow-200 hover:bg-opacity-50 border border-yellow-500 border-opacity-40' :
+                  'bg-blue-600 bg-opacity-30 text-blue-200 hover:bg-opacity-50 border border-blue-500 border-opacity-40'
+                }`}
+                title="Close panel"
+              >
+                ✕
+              </button>
             </div>
-            <button
-              onClick={() => setSelectedSensor(null)}
-              className={`text-lg font-bold ${
-                selectedSensor.status === 'critical' ? 'text-red-300 hover:text-red-100' : 
-                selectedSensor.status === 'warning' ? 'text-yellow-300 hover:text-yellow-100' :
-                'text-gray-400 hover:text-white'
-              }`}
-            >
-              ✕
-            </button>
-          </div>
 
-          <div className="space-y-3">
+            <div className="space-y-2">
             {/* Sensor Value with Animated Bar */}
             <div className={`rounded-lg p-3 border ${
               selectedSensor.status === 'critical' 
@@ -514,15 +395,11 @@ const BridgeModel = ({ riskScore, vibration, load, crack, temperature }) => {
         </div>
       )}
 
-      {/* Instructions - Top Right */}
-      <div className="absolute top-4 right-4 bg-slate-900 bg-opacity-80 border border-blue-500 border-opacity-30 rounded-lg p-3 shadow-lg max-w-xs">
-        <p className="text-xs text-gray-400 mb-2"><strong>🎯 Interactive Bridge Model</strong></p>
-        <ul className="text-xs text-gray-500 space-y-1">
-          <li>🖱️ <strong>Click sensors</strong> to view details</li>
-          <li>🔴 Red = Critical | 🟡 Orange = Warning | 🟢 Green = Normal</li>
-          <li>🔍 <strong>Drag to rotate</strong> | <strong>Scroll to zoom</strong></li>
-          <li>📍 8 total sensors across bridge</li>
-        </ul>
+      {/* Compact instructions placed below the model to avoid covering visualization */}
+      <div className="mt-3 w-full flex justify-start">
+        <div className="text-xs text-gray-400 bg-slate-900 bg-opacity-40 border border-blue-500 border-opacity-20 rounded-md px-3 py-2">
+          <strong>🎯 Interactive Bridge</strong> — Click a sensor to view details. Drag to rotate • Scroll to zoom.
+        </div>
       </div>
     </div>
   );

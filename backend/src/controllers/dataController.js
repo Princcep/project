@@ -227,3 +227,57 @@ exports.getAlerts = async (req, res) => {
     });
   }
 };
+
+// Get current market load (stock volume mapped to load)
+exports.getMarketLoad = async (req, res) => {
+  try {
+    const finnhubService = require('../utils/finnhubService');
+    const marketData = await finnhubService.getMarketLoad();
+
+    res.status(200).json({
+      success: true,
+      data: marketData,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+// Get market insights (price, volume, status)
+exports.getMarketInsights = async (req, res) => {
+  try {
+    const finnhubService = require('../utils/finnhubService');
+    const insights = await finnhubService.getMarketInsights();
+
+    res.status(200).json({
+      success: true,
+      data: insights,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+// Generate market-influenced sensor data
+exports.generateMarketSensorData = async (req, res) => {
+  try {
+    const finnhubService = require('../utils/finnhubService');
+    const sensorData = await finnhubService.generateMarketInfluencedSensorData();
+
+    res.status(200).json({
+      success: true,
+      data: sensorData,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};

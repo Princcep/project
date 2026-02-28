@@ -8,6 +8,7 @@ import VibrationChart from '../components/VibrationChart';
 import MaintenanceRecommendation from '../components/MaintenanceRecommendation';
 import FeaturesSection from '../components/FeaturesSection';
 import LiveDataIndicator from '../components/LiveDataIndicator';
+// StockMarketImpact removed per request
 
 const Dashboard = () => {
   // ==========================================
@@ -37,6 +38,29 @@ const Dashboard = () => {
     earthquake: { connected: true },  // Optimistic: assume connected initially
   });
   const [nextUpdateCountdown, setNextUpdateCountdown] = useState(10);
+
+  // light color flash for 3D model
+  const [modelLightColor, setModelLightColor] = useState('#ffffff');
+
+  useEffect(() => {
+    // read last color in case navigation occurred
+    try {
+      const storedColor = localStorage.getItem('model_light_color');
+      if (storedColor) {
+        setModelLightColor(storedColor);
+        // clear after reading so old events don't persist
+        localStorage.removeItem('model_light_color');
+      }
+    } catch {}
+
+    const handler = (e) => {
+      if (e.detail && e.detail.color) {
+        setModelLightColor(e.detail.color);
+      }
+    };
+    window.addEventListener('model-light', handler);
+    return () => window.removeEventListener('model-light', handler);
+  }, []);
 
   // ==========================================
   // TRACK EARTHQUAKE SPIKE
@@ -244,6 +268,24 @@ const Dashboard = () => {
     updateSensorData();
     startCountdown();
 
+    // Initialize chart with wavy baseline so chart isn't empty on first render
+    try {
+      setChartData(() => {
+        const initial = [];
+        const amplitude = 4 + Math.min(10, Math.max(2, (riskScore || 0) / 12));
+        for (let i = 0; i < 30; i++) {
+          const phase = i * 0.4;
+          const wave = Math.sin(phase) * amplitude;
+          const noise = (Math.random() - 0.5) * 1.2;
+          const raw = (vibration || 0) + wave + noise;
+          initial.push({ time: i, vibration: parseFloat(Math.max(0, Math.min(100, raw)).toFixed(2)) });
+        }
+        return initial;
+      });
+    } catch (e) {
+      console.warn('Failed to init chart data', e);
+    }
+
     // Set up interval for continuous updates (every 10 seconds)
     interval = setInterval(updateSensorData, 10000);
 
@@ -255,27 +297,57 @@ const Dashboard = () => {
   }, []);
 
   // ==========================================
-  // UPDATE CHART DATA
+  // UPDATE CHART DATA - append a new point every second so the trend moves smoothly
   // ==========================================
   useEffect(() => {
-    setChartData(prev => {
-      const newData = [
-        ...prev,
-        {
-          time: prev.length,
-          vibration: vibration,
-        },
-      ];
-      // Keep only last 30 data points
-      return newData.slice(-30);
-    });
-  }, [vibration]);
+    const phaseRef = { current: 0 };
+    const id = setInterval(() => {
+      setChartData(prev => {
+        const lastTime = prev.length > 0 ? prev[prev.length - 1].time : 0;
+
+        // advance phase for the sine wave
+        phaseRef.current += 0.4; // controls wave frequency
+
+        // amplitude scales slightly with current vibration/risk
+        const amplitude = 3 + Math.min(12, Math.max(2, (riskScore || 0) / 10));
+
+        // smooth wavy value: base vibration + sine wave + small noise
+        const wave = Math.sin(phaseRef.current) * amplitude;
+        const noise = (Math.random() - 0.5) * 1.5;
+        const raw = (vibration || 0) + wave + noise;
+        const value = parseFloat(Math.max(0, Math.min(100, raw)).toFixed(2));
+
+        const newPoint = {
+          time: lastTime + 1,
+          vibration: value,
+        };
+        return [...prev, newPoint].slice(-30);
+      });
+    }, 1000);
+
+    return () => clearInterval(id);
+  }, [vibration, riskScore]);
+
+  // debugger log for runtime inspection in browser console
+  React.useEffect(() => {
+    try {
+      // eslint-disable-next-line no-console
+      console.log('Dashboard debug:', { chartDataLength: chartData.length, vibration });
+    } catch {}
+  }, [chartData, vibration]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
       <Navbar />
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pt-20">
+        {/* DEBUG BANNER - visible to help diagnose rendering issues */}
+        <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50">
+          <div className="bg-yellow-300 text-black px-3 py-1 rounded shadow-md text-sm font-medium">
+            Dashboard active — data points: {chartData.length} — vibration: {Number(vibration).toFixed(2)}
+          </div>
+        </div>
+
         {/* Live Data Indicator - Hackathon Display */}
         <LiveDataIndicator
           isConnected={isLiveDataConnected}
@@ -469,15 +541,11 @@ const Dashboard = () => {
           <MaintenanceRecommendation riskScore={riskScore} />
         </div>
 
-        {/* Key Features Section */}
-        <div className="mb-16 bg-slate-800 bg-opacity-50 backdrop-blur-sm border border-blue-500 border-opacity-30 rounded-lg p-8">
-          <FeaturesSection inDashboard={true} />
-        </div>
-
         {/* Bottom Section: Chart & 3D Model */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
           {/* Chart */}
           <div className="lg:col-span-2">
+            <div className="mb-2 text-sm text-gray-300">Data points: {chartData.length}</div>
             <VibrationChart data={chartData} />
           </div>
 
@@ -491,10 +559,18 @@ const Dashboard = () => {
                 crack={crack}
                 temperature={temperature}
                 riskScore={riskScore}
+                lightColor={modelLightColor}
               />
             </div>
           </div>
         </div>
+
+        {/* Key Features Section (moved down) */}
+        <div className="mb-16 bg-slate-800 bg-opacity-50 backdrop-blur-sm border border-blue-500 border-opacity-30 rounded-lg p-8">
+          <FeaturesSection inDashboard={true} />
+        </div>
+
+        {/* StockMarketImpact removed */}
 
         {/* Statistics Footer */}
         <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 bg-white rounded-lg shadow-lg p-6">

@@ -11,6 +11,20 @@ import {
 } from 'recharts';
 
 const VibrationChart = ({ data }) => {
+  if (!data || data.length === 0) {
+    return (
+      <div className="card-glow border-2 border-cyan-500 border-opacity-60 w-full rounded-xl shadow-glow p-6 backdrop-blur-md">
+        <h3 className="text-2xl font-bold text-cyan-400 mb-6 flex items-center space-x-3">
+          <span className="text-3xl">📈</span>
+          <span>Vibration Trend (Last 30 seconds)</span>
+        </h3>
+        <div className="h-72 flex items-center justify-center text-sm text-gray-400">
+          No vibration data yet — start simulation or select a bridge to populate data.
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="card-glow border-2 border-cyan-500 border-opacity-60 w-full rounded-xl shadow-glow p-6 backdrop-blur-md">
       <h3 className="text-2xl font-bold text-cyan-400 mb-6 flex items-center space-x-3">
@@ -57,9 +71,8 @@ const VibrationChart = ({ data }) => {
             stroke="#06b6d4"
             strokeWidth={3}
             dot={false}
-            isAnimationActive={false}
+            isAnimationActive={true}
             name="Vibration Level (m/s²)"
-            filter="drop-shadow(0 0 8px rgba(6, 182, 212, 0.6))"
           />
         </LineChart>
       </ResponsiveContainer>

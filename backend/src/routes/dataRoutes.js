@@ -7,6 +7,9 @@ const {
   getHistoricalData,
   addSensorData,
   getAlerts,
+  getMarketLoad,
+  getMarketInsights,
+  generateMarketSensorData,
 } = require('../controllers/dataController');
 const { protect, authorize } = require('../middleware/auth');
 
@@ -22,6 +25,11 @@ router.get('/bridges/:id', protect, getBridgeById);
 router.post('/sensor-data', addSensorData); // No auth for simulation
 router.get('/sensor-data/:bridgeId/latest', protect, getLatestData);
 router.get('/sensor-data/:bridgeId/history', protect, getHistoricalData);
+
+// Market data routes (Finnhub integration)
+router.get('/market/load', getMarketLoad); // Current stock volume mapped to load
+router.get('/market/insights', getMarketInsights); // Stock price, volume, traffic status
+router.get('/market/sensor-data', generateMarketSensorData); // Market-influenced sensor readings
 
 // Alert routes
 router.get('/alerts/:bridgeId', protect, getAlerts);

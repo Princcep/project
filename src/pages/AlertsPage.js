@@ -1,53 +1,147 @@
 import React, { useState, useEffect } from 'react';
-import { alertsAPI, bridgesAPI } from '../utils/api';
-import { useAuth } from '../utils/AuthContext';
 import Navbar from '../components/Navbar';
 
 const AlertsPage = () => {
   const [bridges, setBridges] = useState([]);
   const [selectedBridgeId, setSelectedBridgeId] = useState('');
-  const [showResolved, setShowResolved] = useState(false);
+  const [selectedBridgeName, setSelectedBridgeName] = useState('');
   const [alerts, setAlerts] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-  const { user } = useAuth();
+  const [showResolved, setShowResolved] = useState(false);
+  const [message, setMessage] = useState('');
+  const [showAddAlertForm, setShowAddAlertForm] = useState(false);
+  const [newAlert, setNewAlert] = useState({
+    severity: 'medium',
+    message: '',
+    type: 'System',
+    value: 0,
+  });
 
-  // Fetch bridges on mount
+  const BRIDGES_STORAGE = 'bridge_admin_data';
+  const ALERTS_STORAGE = 'bridge_alerts_data';
+
   useEffect(() => {
-    fetchBridges();
+    loadBridges();
   }, []);
 
-  // Fetch alerts when bridge or showResolved changes
   useEffect(() => {
     if (selectedBridgeId) {
-      fetchAlerts();
+      loadAlerts();
     }
   }, [selectedBridgeId, showResolved]);
 
-  const fetchBridges = async () => {
+  const loadBridges = () => {
     try {
-      const response = await bridgesAPI.getAll();
-      setBridges(response.data.data || []);
-      if (response.data.data && response.data.data.length > 0) {
-        setSelectedBridgeId(response.data.data[0]._id);
+      const stored = localStorage.getItem(BRIDGES_STORAGE);
+      const data = stored ? JSON.parse(stored) : [];
+      setBridges(data);
+      if (data.length > 0) {
+        setSelectedBridgeId(data[0]._id);
+        setSelectedBridgeName(data[0].name);
       }
     } catch (err) {
-      console.error('Error fetching bridges:', err);
-      setError('Failed to load bridges');
+      console.error('Error loading bridges:', err);
     }
   };
 
-  const fetchAlerts = async () => {
-    setLoading(true);
-    setError('');
+  const loadAlerts = () => {
     try {
-      const response = await alertsAPI.getAlerts(selectedBridgeId, showResolved);
-      setAlerts(response.data.data || []);
+      const stored = localStorage.getItem(ALERTS_STORAGE);
+      const allAlerts = stored ? JSON.parse(stored) : [];
+      let filtered = allAlerts.filter(a => a.bridgeId === selectedBridgeId);
+      if (!showResolved) {
+        filtered = filtered.filter(a => !a.resolved);
+      }
+      setAlerts(filtered.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)));
     } catch (err) {
-      console.error('Error fetching alerts:', err);
-      setError('Failed to load alerts');
-    } finally {
-      setLoading(false);
+      console.error('Error loading alerts:', err);
+    }
+  };
+
+  const saveAlerts = (allAlerts) => {
+    try {
+      localStorage.setItem(ALERTS_STORAGE, JSON.stringify(allAlerts));
+    } catch (err) {
+      console.error('Error saving alerts:', err);
+    }
+  };
+
+  const handleBridgeChange = (e) => {
+    const bridgeId = e.target.value;
+    const bridge = bridges.find(b => b._id === bridgeId);
+    setSelectedBridgeId(bridgeId);
+    if (bridge) {
+      setSelectedBridgeName(bridge.name);
+    }
+  };
+
+  const addAlert = () => {
+    if (!newAlert.message.trim()) {
+      setMessage('❌ Please enter an alert message');
+      setTimeout(() => setMessage(''), 3000);
+      return;
+    }
+
+    try {
+      const stored = localStorage.getItem(ALERTS_STORAGE);
+      const allAlerts = stored ? JSON.parse(stored) : [];
+
+      const alert = {
+        _id: Date.now().toString(),
+        bridgeId: selectedBridgeId,
+        bridgeName: selectedBridgeName,
+        severity: newAlert.severity,
+        message: newAlert.message,
+        type: newAlert.type,
+        value: parseFloat(newAlert.value) || 0,
+        riskScore: Math.random() * 100,
+        createdAt: new Date().toISOString(),
+        resolved: false,
+      };
+
+      allAlerts.push(alert);
+      saveAlerts(allAlerts);
+      loadAlerts();
+
+      setNewAlert({ severity: 'medium', message: '', type: 'System', value: 0 });
+      setShowAddAlertForm(false);
+      setMessage('✅ Alert created successfully!');
+      setTimeout(() => setMessage(''), 3000);
+    } catch (err) {
+      console.error('Error adding alert:', err);
+      setMessage('❌ Error creating alert');
+      setTimeout(() => setMessage(''), 3000);
+    }
+  };
+
+  const deleteAlert = (alertId) => {
+    try {
+      const stored = localStorage.getItem(ALERTS_STORAGE);
+      const allAlerts = stored ? JSON.parse(stored) : [];
+      const filtered = allAlerts.filter(a => a._id !== alertId);
+      saveAlerts(filtered);
+      loadAlerts();
+      setMessage('🗑️ Alert deleted');
+      setTimeout(() => setMessage(''), 2000);
+    } catch (err) {
+      console.error('Error deleting alert:', err);
+    }
+  };
+
+  const toggleResolve = (alertId) => {
+    try {
+      const stored = localStorage.getItem(ALERTS_STORAGE);
+      const allAlerts = stored ? JSON.parse(stored) : [];
+      const alert = allAlerts.find(a => a._id === alertId);
+      if (alert) {
+        alert.resolved = !alert.resolved;
+        alert.resolvedAt = alert.resolved ? new Date().toISOString() : null;
+        saveAlerts(allAlerts);
+        loadAlerts();
+        setMessage(alert.resolved ? '✅ Alert marked resolved' : '📋 Alert marked unresolved');
+        setTimeout(() => setMessage(''), 2000);
+      }
+    } catch (err) {
+      console.error('Error updating alert:', err);
     }
   };
 
@@ -78,8 +172,12 @@ const AlertsPage = () => {
   };
 
   const formatDate = (dateString) => {
-    const date = new Date(dateString);
-    return date.toLocaleString();
+    try {
+      const date = new Date(dateString);
+      return date.toLocaleString();
+    } catch {
+      return 'N/A';
+    }
   };
 
   return (
@@ -87,64 +185,57 @@ const AlertsPage = () => {
       <Navbar />
       
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pt-24">
-        {/* Header */}
         <div className="card-glow border-2 border-cyan-500 border-opacity-60 rounded-xl p-8 mb-8 shadow-glow-lg">
           <h1 className="text-4xl font-bold text-cyan-400 flex items-center space-x-3">
             <span className="text-5xl">🚨</span>
-            <span>System Alerts & Notifications</span>
+            <span>Alerts & Notifications</span>
           </h1>
-          <p className="text-slate-400 text-lg mt-3">Monitor and manage critical system alerts in real-time</p>
+          <p className="text-slate-400 text-lg mt-3">Monitor and manage system alerts for your bridges</p>
         </div>
 
-        {/* Controls */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        {message && (
+          <div className="bg-blue-600 bg-opacity-30 border-2 border-blue-500 text-blue-100 px-4 py-3 rounded-lg mb-6">
+            <p className="text-sm">{message}</p>
+          </div>
+        )}
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
           <div className="card-elevated border-2 border-cyan-500 border-opacity-30 p-4">
-            <label className="block text-sm font-bold text-cyan-400 mb-3">
-              <img src="/logo.svg" alt="Bridge" className="inline h-4 w-auto mr-1" />
-              Select Bridge
-            </label>
-            <select
-              value={selectedBridgeId}
-              onChange={(e) => setSelectedBridgeId(e.target.value)}
-              className="input-modern"
-            >
-              <option value="">-- Select a bridge --</option>
-              {bridges.map((bridge) => (
-                <option key={bridge._id} value={bridge._id} className="bg-slate-800">
-                  {bridge.name} - {bridge.location}
-                </option>
-              ))}
-            </select>
+            <label className="block text-sm font-bold text-cyan-400 mb-3">🌉 Select Bridge</label>
+            {bridges.length > 0 ? (
+              <select
+                value={selectedBridgeId}
+                onChange={handleBridgeChange}
+                className="input-modern w-full"
+              >
+                {bridges.map((bridge) => (
+                  <option key={bridge._id} value={bridge._id}>
+                    {bridge.name} - {bridge.location}
+                  </option>
+                ))}
+              </select>
+            ) : (
+              <p className="text-gray-400 text-sm italic">No bridges added yet. Create one in Admin Panel.</p>
+            )}
           </div>
 
           <div className="flex items-end">
-            <label className="flex items-center space-x-3 cursor-pointer bg-slate-800 bg-opacity-40 border-2 border-cyan-500 border-opacity-30 px-4 py-3 rounded-lg hover:border-opacity-100 transition-all duration-300">
+            <label className="flex items-center space-x-3 cursor-pointer bg-slate-800 bg-opacity-40 border-2 border-cyan-500 border-opacity-30 px-4 py-3 rounded-lg hover:border-opacity-100 transition-all w-full">
               <input
                 type="checkbox"
                 checked={showResolved}
                 onChange={(e) => setShowResolved(e.target.checked)}
                 className="w-5 h-5 rounded accent-cyan-500"
               />
-              <span className="text-base font-semibold text-slate-300">Show Resolved Alerts</span>
+              <span className="text-base font-semibold text-slate-300">Show Resolved</span>
             </label>
-          </div>
-
-          <div className="flex items-end justify-end">
-            <button
-              onClick={fetchAlerts}
-              disabled={loading}
-              className="btn-primary px-6 disabled:opacity-50 disabled:cursor-not-allowed shadow-glow"
-            >
-              🔄 Refresh Data
-            </button>
           </div>
         </div>
 
-        {/* Summary Stats */}
         {selectedBridgeId && alerts.length > 0 && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
             <div className="card-elevated border-2 border-cyan-500 border-opacity-40 p-6">
-              <p className="text-slate-400 text-sm mb-2 font-semibold">📊 Total Alerts</p>
+              <p className="text-slate-400 text-sm mb-2 font-semibold">📊 Total</p>
               <p className="text-4xl font-bold text-cyan-400">{alerts.length}</p>
             </div>
             <div className="card-elevated border-2 border-red-500 border-opacity-40 p-6">
@@ -168,90 +259,103 @@ const AlertsPage = () => {
           </div>
         )}
 
-        {/* Error Message */}
-        {error && (
-          <div className="bg-red-500 bg-opacity-30 border-2 border-red-500 text-red-200 px-6 py-4 rounded-lg mb-6 animate-slide-down backdrop-blur-sm">
-            <div className="flex items-center gap-3">
-              <span className="text-2xl">⚠️</span>
-              <span className="font-semibold">{error}</span>
+        {selectedBridgeId && (
+          <button
+            onClick={() => setShowAddAlertForm(!showAddAlertForm)}
+            className="btn-primary mb-6"
+          >
+            {showAddAlertForm ? '✕ Cancel' : '➕ Add Test Alert'}
+          </button>
+        )}
+
+        {showAddAlertForm && selectedBridgeId && (
+          <div className="bg-slate-800 bg-opacity-50 border-2 border-cyan-500 border-opacity-30 rounded-lg p-6 mb-8">
+            <h3 className="text-xl font-bold text-cyan-400 mb-4">Create Alert</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">Severity</label>
+                <select
+                  value={newAlert.severity}
+                  onChange={(e) => setNewAlert({ ...newAlert, severity: e.target.value })}
+                  className="input-modern w-full"
+                >
+                  <option value="low">🔵 Low</option>
+                  <option value="medium">🟡 Medium</option>
+                  <option value="high">🟠 High</option>
+                  <option value="critical">🔴 Critical</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">Type</label>
+                <select
+                  value={newAlert.type}
+                  onChange={(e) => setNewAlert({ ...newAlert, type: e.target.value })}
+                  className="input-modern w-full"
+                >
+                  <option value="System">System</option>
+                  <option value="Vibration">Vibration</option>
+                  <option value="Stress">Stress</option>
+                  <option value="Temperature">Temperature</option>
+                  <option value="Crack">Crack Detection</option>
+                </select>
+              </div>
             </div>
+            <textarea
+              value={newAlert.message}
+              onChange={(e) => setNewAlert({ ...newAlert, message: e.target.value })}
+              placeholder="Alert message..."
+              className="input-modern w-full mb-4"
+              rows="3"
+            />
+            <input
+              type="number"
+              value={newAlert.value}
+              onChange={(e) => setNewAlert({ ...newAlert, value: e.target.value })}
+              placeholder="Sensor value"
+              className="input-modern w-full mb-4"
+            />
+            <button onClick={addAlert} className="btn-primary w-full">
+              ✓ Create
+            </button>
           </div>
         )}
 
-        {/* Loading State */}
-        {loading && (
-          <div className="flex items-center justify-center h-64">
-            <div className="text-center">
-              <div className="animate-spin rounded-full h-16 w-16 border-4 border-cyan-500 border-t-transparent mx-auto mb-4 shadow-glow"></div>
-              <p className="text-slate-400 text-lg font-semibold">Loading alerts...</p>
-            </div>
-          </div>
-        )}
-
-        {/* Alerts List */}
-        {!loading && selectedBridgeId && (
+        {selectedBridgeId && (
           <div className="space-y-4">
             {alerts.length > 0 ? (
               alerts.map((alert) => (
-                <div
-                  key={alert._id}
-                  className={`card-glow border-2 ${getSeverityColor(alert.severity)} p-6 backdrop-blur-md hover-lift transition-all duration-300`}
-                >
-                  <div className="flex items-start justify-between">
+                <div key={alert._id} className={`card-glow border-2 ${getSeverityColor(alert.severity)} p-6`}>
+                  <div className="flex items-start justify-between gap-4">
                     <div className="flex-1">
-                      <div className="flex items-center space-x-3 mb-3 flex-wrap gap-2">
-                        <span className="text-2xl font-bold">{getSeverityBadge(alert.severity)}</span>
-                        <span className="text-xs px-3 py-1 bg-slate-700 bg-opacity-50 rounded-full font-semibold text-cyan-300 border border-cyan-500 border-opacity-30">
-                          {alert.type}
-                        </span>
-                        {alert.resolved && (
-                          <span className="text-xs px-3 py-1 bg-green-500 bg-opacity-30 rounded-full text-green-400 border border-green-500 border-opacity-40 font-bold">
-                            ✓ Resolved
-                          </span>
-                        )}
+                      <div className="flex items-center gap-3 mb-2 flex-wrap">
+                        <span className="text-2xl">{getSeverityBadge(alert.severity)}</span>
+                        <span className="text-xs px-2 py-1 bg-slate-700 rounded text-cyan-300">{alert.type}</span>
+                        {alert.resolved && <span className="text-xs px-2 py-1 bg-green-600 rounded text-green-300">✓ Done</span>}
                       </div>
-                      <p className="text-slate-100 font-bold text-lg mb-3">{alert.message}</p>
-                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4">
-                        <div className="bg-slate-800 bg-opacity-40 p-3 rounded-lg border border-slate-600 border-opacity-40">
-                          <p className="text-slate-400 text-xs mb-1 font-semibold">Value</p>
-                          <p className="text-white font-bold text-lg">{alert.value?.toFixed(2) || 'N/A'}</p>
-                        </div>
-                        <div className="bg-slate-800 bg-opacity-40 p-3 rounded-lg border border-slate-600 border-opacity-40">
-                          <p className="text-slate-400 text-xs mb-1 font-semibold">Risk Score</p>
-                          <p className="text-white font-bold text-lg">{alert.riskScore?.toFixed(2) || 'N/A'}</p>
-                        </div>
-                        <div className="bg-slate-800 bg-opacity-40 p-3 rounded-lg border border-slate-600 border-opacity-40">
-                          <p className="text-slate-400 text-xs mb-1 font-semibold">Created</p>
-                          <p className="text-white font-mono text-xs">{formatDate(alert.createdAt)}</p>
-                        </div>
-                        {alert.resolved && alert.resolvedAt && (
-                          <div className="bg-slate-800 bg-opacity-40 p-3 rounded-lg border border-slate-600 border-opacity-40">
-                            <p className="text-slate-400 text-xs mb-1 font-semibold">Resolved</p>
-                            <p className="text-white font-mono text-xs">{formatDate(alert.resolvedAt)}</p>
-                          </div>
-                        )}
+                      <p className="text-white font-bold mb-3">{alert.message}</p>
+                      <div className="grid grid-cols-2 md:grid-cols-3 gap-3 text-sm">
+                        <div><p className="text-gray-400">Value</p><p className="text-white font-bold">{alert.value?.toFixed(2)}</p></div>
+                        <div><p className="text-gray-400">Risk</p><p className="text-white font-bold">{alert.riskScore?.toFixed(2)}</p></div>
+                        <div><p className="text-gray-400">Date</p><p className="text-white font-mono text-xs">{formatDate(alert.createdAt)}</p></div>
                       </div>
+                    </div>
+                    <div className="flex gap-2">
+                      <button onClick={() => toggleResolve(alert._id)} className={`px-3 py-2 rounded text-sm ${alert.resolved ? 'bg-yellow-600 text-yellow-200' : 'bg-green-600 text-green-200'}`}>
+                        {alert.resolved ? '📋' : '✓'}
+                      </button>
+                      <button onClick={() => deleteAlert(alert._id)} className="px-3 py-2 bg-red-600 text-red-200 rounded text-sm">🗑️</button>
                     </div>
                   </div>
                 </div>
               ))
             ) : (
-              <div className="card-glow border-2 border-green-500 border-opacity-40 text-center py-12 backdrop-blur-md">
-                <p className="text-slate-300 text-xl font-semibold">✓ No Alerts Found</p>
-                <p className="text-slate-400 text-base mt-2">All bridge systems operating normally</p>
-              </div>
+              <div className="text-center py-12 text-slate-400">✓ No alerts</div>
             )}
           </div>
         )}
 
-        {!selectedBridgeId && (
-          <div className="card-glow border-2 border-cyan-500 border-opacity-40 text-center py-12 backdrop-blur-md">
-            <p className="text-slate-300 text-xl font-semibold">
-              <img src="/logo.svg" alt="Bridge" className="inline h-4 w-auto mr-1" />
-              Select a Bridge
-            </p>
-            <p className="text-slate-400 text-base mt-2">Choose a bridge from the dropdown to view alerts</p>
-          </div>
+        {!selectedBridgeId && bridges.length > 0 && (
+          <div className="text-center py-12 text-slate-400">Select a bridge to view alerts</div>
         )}
       </main>
     </div>
